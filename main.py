@@ -17,6 +17,11 @@ pygame.mixer.music.load("assets/sonidos/fondo_musica.mp3")  # Reemplaza por la r
 pygame.mixer.music.set_volume(0.2)  # Establecer el volumen de la música (0.0 a 1.0)
 pygame.mixer.music.play(-1)
 
+# Cargar la imagen de fondo
+fondo = pygame.image.load("assets/fondos/fondo_juego.png")
+#Escalar fondo a la pantalla
+fondo = pygame.transform.scale(fondo, (ANCHO, ALTO)) 
+
 # Cargar imágenes del personaje para cada dirección y estado
 imagenes = {
     "frente": {
@@ -85,6 +90,14 @@ balas = []
 # Reloj para controlar los FPS
 reloj = pygame.time.Clock()
 
+ancho_restriccion = 400  # La mitad del ancho de la ventana
+alto_restriccion = 120  # Altura del área restringida
+x_restriccion = (ANCHO - ancho_restriccion) // 2  # Calcular la posición X para centrar
+y_restriccion = 0  # En la parte superior
+
+# Crear el rectángulo del área restringida
+margen_superior = pygame.Rect(x_restriccion, y_restriccion, ancho_restriccion, alto_restriccion)
+
 # Bucle principal del juego
 ejecutando = True
 while ejecutando:
@@ -127,6 +140,10 @@ while ejecutando:
         personaje.y += velocidad
         movimiento = True
 
+    if personaje.colliderect(margen_superior):
+        # Empuja al personaje fuera del área restringida
+        personaje.y = margen_superior.bottom
+    
     # Actualizar la animación según el movimiento
     if movimiento:
         contador_pasos += 1
@@ -169,7 +186,7 @@ while ejecutando:
         direccion_actual = "izquierda"
 
     # Dibujar el fondo y el personaje
-    ventana.fill(BLANCO)
+    ventana.blit(fondo, (0, 0))
     ventana.blit(imagenes[direccion_actual][estado_actual], personaje)
     
     for bala in balas:
