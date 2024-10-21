@@ -10,18 +10,19 @@ ALTO = 700
 ventana = pygame.display.set_mode((ANCHO, ALTO))
 pygame.display.set_caption("Final Farm")
 
+#pygame.mixer.music.load("assets/sonidos/fondo_musica.mp3")  # Reemplaza por la ruta a tu archivo de música
+#pygame.mixer.music.set_volume(0.2)  # Establecer el volumen de la música (0.0 a 1.0)
+#pygame.mixer.music.play(-1)
+
+
 # Definir colores
 BLANCO = (255, 255, 255)
-
-pygame.mixer.music.load("assets/sonidos/fondo_musica.mp3")  # Reemplaza por la ruta a tu archivo de música
-pygame.mixer.music.set_volume(0.2)  # Establecer el volumen de la música (0.0 a 1.0)
-pygame.mixer.music.play(-1)
 
 # Cargar la imagen de fondo
 fondo = pygame.image.load("assets/fondos/fondo_juego.png")
 
 # Cargar las imágenes de los diferentes fondos
-fondo_juego_1 = pygame.image.load("assets/fondos/fondo_juego.png")
+fondo_juego_1 = pygame.image.load("assets/fondos/fondo_juego_1.jpg")
 fondo_juego_1 = pygame.transform.scale(fondo_juego_1, (ANCHO, ALTO))
 
 fondo_juego_2 = pygame.image.load("assets/fondos/fondo_juego_2.png")
@@ -137,7 +138,7 @@ def juego_principal():
     y_restriccion = 0  # En la parte superior
 
     # Crear el rectángulo del área restringida
-    margen_superior = pygame.Rect(x_restriccion, y_restriccion, ancho_restriccion, alto_restriccion)
+    #margen_superior = pygame.Rect(x_restriccion, y_restriccion, ancho_restriccion, alto_restriccion)
 
     # Bucle principal del juego
     ejecutando = True
@@ -152,7 +153,7 @@ def juego_principal():
             elif evento.type == pygame.MOUSEBUTTONDOWN:
                 if evento.button == 1:  # Clic izquierdo
                     sonido_click.play()
-                    # Obtener la posición del mouse y calcular el ángulo de disparo
+                    # Obtener la posición del mouse y calcular el ángulo de daisparo
                     pos_mouse = pygame.mouse.get_pos()
                     dx = pos_mouse[0] - (personaje.x + personaje.width // 2)
                     dy = pos_mouse[1] - (personaje.y + personaje.height // 2)
@@ -181,9 +182,9 @@ def juego_principal():
             personaje.y += velocidad
             movimiento = True
 
-        if personaje.colliderect(margen_superior):
+        #if personaje.colliderect(margen_superior):
             # Empuja al personaje fuera del área restringida
-            personaje.y = margen_superior.bottom
+        #    personaje.y = margen_superior.bottom
         
         # Actualizar la animación según el movimiento
         if movimiento:

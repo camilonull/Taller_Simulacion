@@ -5,14 +5,26 @@ ANCHO = 1200
 ALTO = 700
 
 # Cargar imagen de fondo
-fondo = pygame.image.load("assets/fondos/pantalla_principal.jpg")
+fondo = pygame.image.load("assets/fondos/pantalla_principal1.jpg")
 fondo = pygame.transform.scale(fondo, (ANCHO, ALTO))  # Escalar fondo a la pantalla
 
 # Cargar imágenes del botón play1 y play2
 boton_play1 = pygame.image.load("assets/botones/play1.png")  # Imagen normal
 boton_play2 = pygame.image.load("assets/botones/play2.png")  # Imagen al pasar el mouse
 boton_play1 = pygame.transform.scale(boton_play1, (200, 200))  # Ajustar tamaño del botón
-boton_play2 = pygame.transform.scale(boton_play2, (200, 200))  # Ajustar tamaño del botón
+boton_play2 = pygame.transform.scale(boton_play2, (200, 200)) 
+# Ajustar tamaño del botón
+
+boton_musica_play = pygame.image.load("assets/botones/play_music.png")
+boton_musica_pause = pygame.image.load("assets/botones/pause_music.png")
+
+boton_musica_play = pygame.transform.scale(boton_musica_play, (50, 50))
+boton_musica_pause = pygame.transform.scale(boton_musica_pause, (50, 50))
+
+x_boton_musica = ANCHO - 60  # En la esquina superior derecha
+y_boton_musica = 10
+
+
 
 imagenes_frente = [
     pygame.image.load("assets/player/frente/frente_quieto.png"),
@@ -26,6 +38,31 @@ for i in range(len(imagenes_frente)):
 # Posición del personaje en la esquina inferior derecha
 pos_x_personaje = ANCHO - 60  # Ajustar para posicionar el personaje en la esquina derecha
 pos_y_personaje = ALTO - 80 
+
+musica_reproduciendo = True
+
+# Función para dibujar y manejar el botón de música
+def dibujar_boton_musica(ventana):
+    global musica_reproduciendo
+    
+    mouse = pygame.mouse.get_pos()  # Obtener posición del mouse
+    click = pygame.mouse.get_pressed()  # Obtener si se hizo clic
+    
+    # Verificar si el mouse está sobre el botón de música
+    if x_boton_musica + boton_musica_play.get_width() > mouse[0] > x_boton_musica and y_boton_musica + boton_musica_play.get_height() > mouse[1] > y_boton_musica:
+        if click[0] == 1:  # Si se hace clic en el botón
+            if musica_reproduciendo:
+                pygame.mixer.music.pause()
+                musica_reproduciendo = False
+            else:
+                pygame.mixer.music.unpause()
+                musica_reproduciendo = True
+    
+    # Dibujar el botón de música correspondiente (play o pause)
+    if musica_reproduciendo:
+        ventana.blit(boton_musica_pause, (x_boton_musica, y_boton_musica))  # Mostrar el botón de pausa
+    else:
+        ventana.blit(boton_musica_play, (x_boton_musica, y_boton_musica)) 
 
 def mostrar_personaje_animado(ventana, contador_pasos):
     # Alternar entre las 3 imágenes de frente según el contador de pasos
@@ -52,18 +89,17 @@ def dibujar_boton_cambiable(ventana, x, y):
 # Pantalla de inicio
 def pantalla_inicio(ventana, ANCHO, ALTO):
     # Inicializar la fuente
-    fuente_titulo = pygame.font.Font(None, 100)
+    pygame.mixer.music.load("assets/sonidos/fondo_musica.mp3")
+    pygame.mixer.music.set_volume(0.2)
+    pygame.mixer.music.play(-1)  # Reproducir en bucle
     contador_pasos = 0
     iniciar = True
     while iniciar:
         ventana.blit(fondo, (0, 0))
+      
         
-        # Texto del título
-        texto_titulo = fuente_titulo.render("Final Farm", True, (243, 255, 95 ))
-        ventana.blit(texto_titulo, (ANCHO // 2 - texto_titulo.get_width() // 2, ALTO // 7))
-
         # Dibujar botón que cambia de imagen al pasar el mouse
-        if dibujar_boton_cambiable(ventana, ANCHO // 2 - boton_play1.get_width() // 2, ALTO // 2):
+        if dibujar_boton_cambiable(ventana, ANCHO // 2 - boton_play1.get_width() // 2, ALTO // 1.5):
             iniciar = False  # Salir de la pantalla de inicio e iniciar el juego
 
         mostrar_personaje_animado(ventana, contador_pasos)
@@ -72,6 +108,8 @@ def pantalla_inicio(ventana, ANCHO, ALTO):
         contador_pasos += 1
         if contador_pasos >= 360:  # Reiniciar después de recorrer las 3 imágenes
             contador_pasos = 0
+        
+        dibujar_boton_musica(ventana)
         
         # Actualizar la pantalla
         pygame.display.update()
