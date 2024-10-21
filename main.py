@@ -10,29 +10,21 @@ ALTO = 700
 ventana = pygame.display.set_mode((ANCHO, ALTO))
 pygame.display.set_caption("Final Farm")
 
-#pygame.mixer.music.load("assets/sonidos/fondo_musica.mp3")  # Reemplaza por la ruta a tu archivo de música
-#pygame.mixer.music.set_volume(0.2)  # Establecer el volumen de la música (0.0 a 1.0)
-#pygame.mixer.music.play(-1)
-
-
 # Definir colores
 BLANCO = (255, 255, 255)
 
 # Cargar la imagen de fondo
-fondo = pygame.image.load("assets/fondos/fondo_juego.png")
+fondo = pygame.image.load("assets/fondos/fondo_juego_1.png")
 
 # Cargar las imágenes de los diferentes fondos
-fondo_juego_1 = pygame.image.load("assets/fondos/fondo_juego_1.jpg")
+fondo_juego_1 = pygame.image.load("assets/fondos/fondo_juego_2.png")
 fondo_juego_1 = pygame.transform.scale(fondo_juego_1, (ANCHO, ALTO))
 
-fondo_juego_2 = pygame.image.load("assets/fondos/fondo_juego_2.png")
+fondo_juego_2 = pygame.image.load("assets/fondos/fondo_juego_3.png")
 fondo_juego_2 = pygame.transform.scale(fondo_juego_2, (ANCHO, ALTO))
 
-fondo_juego_3 = pygame.image.load("assets/fondos/fondo_juego_3.png")
+fondo_juego_3 = pygame.image.load("assets/fondos/fondo_juego_4.png")
 fondo_juego_3 = pygame.transform.scale(fondo_juego_3, (ANCHO, ALTO))
-
-fondo_juego_4 = pygame.image.load("assets/fondos/fondo_juego_4.png")
-fondo_juego_4 = pygame.transform.scale(fondo_juego_4, (ANCHO, ALTO))
 
 #Escalar fondo a la pantalla
 fondo = pygame.transform.scale(fondo, (ANCHO, ALTO)) 
@@ -59,6 +51,23 @@ imagenes = {
         "paso2": pygame.image.load("assets/player/derecha/derecha_paso2.png")
     }
 }
+
+# Cargar la imagen de la letra "E"
+imagen_e = pygame.image.load("assets/botones/E.jpg")
+imagen_e = pygame.transform.scale(imagen_e, (50, 50))  # Escalarla al tamaño que quieras
+
+
+# Cargar las imágenes de la mata
+imagenes_mata = [
+    pygame.image.load("assets/fondos/mata_mari.png"),
+    pygame.image.load("assets/fondos/mata_mari2.png"),
+    pygame.image.load("assets/fondos/mata_mari3.png")
+]
+
+# Escalar las imágenes si es necesario
+for i in range(len(imagenes_mata)):
+    imagenes_mata[i] = pygame.transform.scale(imagenes_mata[i], (200, 200))  # Escalar al tamaño que necesites
+
 class Bala:
     def __init__(self, x, y, angulo):
         self.x = x
@@ -121,13 +130,16 @@ def juego_principal():
     # Inicializar la fuente
     fuente = pygame.font.Font(None, 36)
     
+     # Fondo inicial
+    fondo_actual = fondo  # Mostrar fondo inicial
+    
     # Reloj para controlar los FPS
     reloj = pygame.time.Clock()
     
-    ancho_casa = 470
-    alto_casa = 210
-    x_casa = (ANCHO - ancho_casa) // 2  # Centramos la Casa horizontalmente
-    y_casa = 0 
+    ancho_casa = 270
+    alto_casa = 160
+    x_casa = 0  # Centramos la Casa horizontalmente
+    y_casa = 80 
 
     casa = pygame.Rect(x_casa, y_casa, ancho_casa, alto_casa) 
     
@@ -138,14 +150,29 @@ def juego_principal():
     y_restriccion = 0  # En la parte superior
 
     # Crear el rectángulo del área restringida
-    #margen_superior = pygame.Rect(x_restriccion, y_restriccion, ancho_restriccion, alto_restriccion)
+    margen_superior = pygame.Rect(x_restriccion, y_restriccion, ancho_restriccion, alto_restriccion)
+    
+    
+    tiempo_cambio_mata = pygame.time.get_ticks()
+    indice_imagen_mata = 0
 
+    # Posición de la mata
+    x_mata = 5
+    y_mata = 350
     # Bucle principal del juego
     ejecutando = True
     while ejecutando:
         # Establecer la cantidad de FPS
         reloj.tick(60)
+        
+        centro_personaje_x = personaje.x + personaje.width // 2
+        centro_personaje_y = personaje.y + personaje.height // 2
 
+        centro_mata_x = x_mata + imagenes_mata[indice_imagen_mata].get_width() // 2
+        centro_mata_y = y_mata + imagenes_mata[indice_imagen_mata].get_height() // 2
+        
+        distancia_mata = math.sqrt((centro_personaje_x - centro_mata_x) ** 2 + (centro_personaje_y - centro_mata_y) ** 2)
+        print(distancia_mata)
         # Manejar eventos
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
@@ -182,9 +209,9 @@ def juego_principal():
             personaje.y += velocidad
             movimiento = True
 
-        #if personaje.colliderect(margen_superior):
+        if personaje.colliderect(margen_superior):
             # Empuja al personaje fuera del área restringida
-        #    personaje.y = margen_superior.bottom
+            personaje.y = margen_superior.bottom
         
         # Actualizar la animación según el movimiento
         if movimiento:
@@ -211,14 +238,15 @@ def juego_principal():
 
         
           # Actualizar el fondo según la vida de la Casa
-        if vida_actual_casa > 75:
-            fondo = fondo_juego_1
-        elif vida_actual_casa > 50:
-            fondo = fondo_juego_2
-        elif vida_actual_casa > 10:
-            fondo = fondo_juego_3
-        else:
-            fondo = fondo_juego_4
+        if vida_actual_casa > 100:  # Más del 50% de la vida
+            fondo_actual = fondo
+        elif 50 < vida_actual_casa <= 100:  # Entre 50% y 25%
+            fondo_actual = fondo_juego_1
+        elif 25 < vida_actual_casa <= 50:  # Entre 25% y 10%
+            fondo_actual = fondo_juego_2
+        elif vida_actual_casa <= 25:  # Menos del 10%
+            fondo_actual = fondo_juego_3
+      
         # Obtener la posición del mouse
         pos_mouse = pygame.mouse.get_pos()
 
@@ -238,8 +266,14 @@ def juego_principal():
             direccion_actual = "izquierda"
 
         # Dibujar el fondo y el personaje
-        ventana.blit(fondo, (0, 0))
-        
+        ventana.blit(fondo_actual, (0, 0))
+        if distancia_mata < 100:  # Si la distancia es menor a 100 píxeles
+           ventana.blit(imagen_e, (centro_mata_x - imagen_e.get_width() // 2, centro_mata_y - 100))  # Mostrar la imagen 'E' sobre la mata
+
+        # Verificar si el jugador presiona la tecla "E"
+        if teclas[pygame.K_e]:
+            vida_actual_casa = vida_maxima_casa  # Recargar la vida de la Casa
+            print("Recargando vida de la Casa")
         
         # Dibujar la barra de vida
         dibujar_barra_vida(ventana, 40, 40, vida_actual_casa, vida_maxima_casa, ancho_barra_vida_casa, 20)
@@ -251,7 +285,19 @@ def juego_principal():
 
         
         ventana.blit(imagenes[direccion_actual][estado_actual], personaje)
-        #pygame.draw.rect(ventana, (150, 30, 0), casa)  # Casa de color marrón
+        
+        #Dibujar collaider de la casa
+        #pygame.draw.rect(ventana, (255, 0, 0), casa) 
+        tiempo_actual = pygame.time.get_ticks()
+
+    # Cambiar la imagen cada 1000 milisegundos (1 segundo)
+        if tiempo_actual - tiempo_cambio_mata > 1000:
+            indice_imagen_mata = (indice_imagen_mata + 1) % len(imagenes_mata)  # Alternar entre 0, 1 y 2
+            tiempo_cambio_mata = tiempo_actual  # Reiniciar el tiempo
+
+# Dibujar la imagen actual de la mata en la pantalla
+        ventana.blit(imagenes_mata[indice_imagen_mata], (x_mata, y_mata))
+        
         for bala in balas[:]:
             bala.mover()
             bala.dibujar(ventana)

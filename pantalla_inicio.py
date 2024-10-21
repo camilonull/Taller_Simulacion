@@ -15,8 +15,8 @@ boton_play1 = pygame.transform.scale(boton_play1, (200, 200))  # Ajustar tamaño
 boton_play2 = pygame.transform.scale(boton_play2, (200, 200)) 
 # Ajustar tamaño del botón
 
-boton_musica_play = pygame.image.load("assets/botones/play_music.png")
-boton_musica_pause = pygame.image.load("assets/botones/pause_music.png")
+boton_musica_pause = pygame.image.load("assets/botones/play_music.png")
+boton_musica_play = pygame.image.load("assets/botones/pause_music.png")
 
 boton_musica_play = pygame.transform.scale(boton_musica_play, (50, 50))
 boton_musica_pause = pygame.transform.scale(boton_musica_pause, (50, 50))
