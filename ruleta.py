@@ -36,9 +36,10 @@ def aplicar_powerup(powerup, vida_actual_casa, vida_maxima_casa):
     return vida_actual_casa
 
 # Dibujar la ruleta
+# Dibujar la ruleta
 def dibujar_ruleta(ventana, fondo_actual, ANCHO, ALTO, vida_actual_casa, vida_maxima_casa):
     global _powerup_seleccionado, _ruleta_angulo, _ruleta_mostrando, duracion_ruleta, _indice_powerup_actual, _tiempo_fin_ruleta
-    
+
     # Redibujar el fondo
     ventana.blit(fondo_actual, (0, 0))
 
@@ -47,15 +48,15 @@ def dibujar_ruleta(ventana, fondo_actual, ANCHO, ALTO, vida_actual_casa, vida_ma
     # Dibujar la ruleta girando (fase visual)
     if _ruleta_mostrando and _powerup_seleccionado is None:
         _ruleta_angulo = (_ruleta_angulo + 1) % 360  # Incrementar el ángulo de rotación
-        
+
         # Ciclar por los power-ups mientras la ruleta gira
         if tiempo_actual % 500 < 250:  # Cambiar de power-up cada 500 ms
             _indice_powerup_actual = (_indice_powerup_actual + 1) % len(powerups)
 
-
         # Obtener el power-up actual para dibujarlo
         powerup_actual = list(powerups.values())[_indice_powerup_actual]
-        ruleta_rect = powerup_actual.get_rect(center=(ANCHO // 2, ALTO // 2))
+        # Cambia las coordenadas para la posición deseada
+        ruleta_rect = powerup_actual.get_rect(center=(ANCHO // 4, ALTO // 2))  # Cambiar la posición a la izquierda
         
         # Dibujar el power-up rotando
         ventana.blit(pygame.transform.rotate(powerup_actual, _ruleta_angulo), ruleta_rect)
@@ -72,7 +73,7 @@ def dibujar_ruleta(ventana, fondo_actual, ANCHO, ALTO, vida_actual_casa, vida_ma
     # Mostrar la imagen del power-up ganador por 1 segundo sin rotación
     if _powerup_seleccionado:
         powerup_ganador = powerups[_powerup_seleccionado]
-        ruleta_rect = powerup_ganador.get_rect(center=(ANCHO // 2, ALTO // 2))
+        ruleta_rect = powerup_ganador.get_rect(center=(ANCHO // 4, ALTO // 2))  # Cambiar la posición a la izquierda
         ventana.blit(powerup_ganador, ruleta_rect)
 
         # Verificar si ha pasado 1 segundo desde que se seleccionó el ganador
@@ -81,7 +82,8 @@ def dibujar_ruleta(ventana, fondo_actual, ANCHO, ALTO, vida_actual_casa, vida_ma
             vida_actual_casa = aplicar_powerup(_powerup_seleccionado, vida_actual_casa, vida_maxima_casa)
             _powerup_seleccionado = None  # Resetear para la próxima vez
 
-    return vida_actual_casa
+    return vida_actual_casa, _powerup_seleccionado  # Retornar también el power-up seleccionado
+
 
 # Función para comprobar si la ruleta está mostrándose
 def ruleta_mostrando():

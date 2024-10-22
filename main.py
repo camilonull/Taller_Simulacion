@@ -2,6 +2,8 @@ import pygame
 import math
 from pantalla_inicio import pantalla_inicio
 from ruleta import mostrar_ruleta, dibujar_ruleta, ruleta_mostrando 
+from torreta import Torreta
+
 # Inicializar Pygame
 pygame.init()
 
@@ -13,6 +15,10 @@ pygame.display.set_caption("Final Farm")
 
 # Definir colores
 BLANCO = (255, 255, 255)
+
+torreta_imagen = pygame.image.load("assets/powerups/torreta.png")
+# Crear una instancia de la torreta
+torreta = Torreta(ANCHO // 2 - 50, ALTO // 2 - 50, torreta_imagen) 
 
 # Cargar la imagen de fondo
 fondo = pygame.image.load("assets/fondos/fondo_juego_1.png")
@@ -128,9 +134,13 @@ def juego_principal():
     velocidad = 5
     direccion_actual = "frente"
     estado_actual = "quieto"
+    
+    tiempo_ultima_interaccion = 0  # Tiempo de la última interacción
+    contador_activo = True  # Estado del contador
+    tiempo_restante = 15  # Contador inicial en segundos
 
     contador_pasos = 0
-
+    tiempo_actual = pygame.time.get_ticks() 
     # Lista para almacenar las balas disparadas
     balas = []
 
@@ -181,6 +191,13 @@ def juego_principal():
         centro_mata_x = x_mata + imagenes_mata[indice_imagen_mata].get_width() // 2
         centro_mata_y = y_mata + imagenes_mata[indice_imagen_mata].get_height() // 2
         
+        if contador_activo:
+            # Calcular el tiempo restante
+            tiempo_restante = 15 - (tiempo_actual - tiempo_ultima_interaccion) // 1000  # Convertir a segundos
+
+            if tiempo_restante <= 0:
+                contador_activo = False  # Desactivar el contador si ha llegado a 0
+                tiempo_restante = 0  # Asegúrate de que no se muestre un valor negativo
         distancia_mata = math.sqrt((centro_personaje_x - centro_mata_x) ** 2 + (centro_personaje_y - centro_mata_y) ** 2)
         #print(distancia_mata)
         # Manejar eventos
@@ -280,14 +297,29 @@ def juego_principal():
         if distancia_mata < 100:  # Si la distancia es menor a 100 píxeles
            ventana.blit(imagen_e, (centro_mata_x - imagen_e.get_width() // 2, centro_mata_y - 100))  # Mostrar la imagen 'E' sobre la mata
 
-        # Verificar si el jugador presiona la tecla "E" cerca de la mata
+      
+        # Manejar la entrada de la tecla 'E'
         if teclas[pygame.K_e] and distancia_mata < 100 and not ruleta_mostrando():
-            mostrar_ruleta()
-        
-        # Dibujar la ruleta si está activa
+            # Verificar si han pasado 10 segundos desde la última interacción
+            if tiempo_actual - tiempo_ultima_interaccion > 15000:  # 10000 ms = 10 segundos
+                mostrar_ruleta()
+                tiempo_ultima_interaccion = tiempo_actual  # Actualiza la última interacción
+                contador_activo = True  # Activa el contador
         if ruleta_mostrando():
-            vida_actual_casa = dibujar_ruleta(ventana, fondo_actual, ANCHO, ALTO, vida_actual_casa, vida_maxima_casa)
+            vida_actual_casa, powerup_obtenido = dibujar_ruleta(ventana, fondo_actual, ANCHO, ALTO, vida_actual_casa, vida_maxima_casa)
 
+            if powerup_obtenido:  # Si hay un power-up obtenido
+                # Aquí puedes manejar el power-up, como activar la torreta
+                if powerup_obtenido == "torreta":
+                    torreta.activar()  # Activa la torreta
+
+        torreta.actualizar()  # Actualiza el estado de la torreta
+        torreta.dibujar(ventana)  # Dibuja la torreta en la ventana    
+        # Dibuja el contador en pantalla
+        if contador_activo:
+            fuente = pygame.font.SysFont(None, 48)  # Crea una fuente
+            texto_contador = fuente.render(f"{tiempo_restante}s", True, (255, 255, 255))  # Texto en blanco
+            ventana.blit(texto_contador, (90, y_mata + 180))  # Dibuja el contador en la esquina superior izquierda
         # Dibujar la barra de vida
         dibujar_barra_vida(ventana, 40, 40, vida_actual_casa, vida_maxima_casa, ancho_barra_vida_casa, 20)
         
