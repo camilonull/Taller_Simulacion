@@ -1,6 +1,7 @@
 import pygame
 import math
 from pantalla_inicio import pantalla_inicio
+from ruleta import mostrar_ruleta, dibujar_ruleta, ruleta_mostrando 
 # Inicializar Pygame
 pygame.init()
 
@@ -25,6 +26,9 @@ fondo_juego_2 = pygame.transform.scale(fondo_juego_2, (ANCHO, ALTO))
 
 fondo_juego_3 = pygame.image.load("assets/fondos/fondo_juego_4.png")
 fondo_juego_3 = pygame.transform.scale(fondo_juego_3, (ANCHO, ALTO))
+
+escudo = pygame.image.load("assets/fondos/escudo.png")
+escudo = pygame.transform.scale(escudo, (330, 250))
 
 #Escalar fondo a la pantalla
 fondo = pygame.transform.scale(fondo, (ANCHO, ALTO)) 
@@ -130,9 +134,9 @@ def juego_principal():
     # Lista para almacenar las balas disparadas
     balas = []
 
-    vida_maxima_casa = 200  # Vida total máxima de la Casa
-    vida_actual_casa = 200  # Vida inicial de la Casa
-    ancho_barra_vida_casa = 400  # Ancho máximo de la barra de vida de la Casa
+    vida_maxima_casa = 1000  # Vida total máxima de la Casa
+    vida_actual_casa = 1000  # Vida inicial de la Casa
+    ancho_barra_vida_casa = 500  # Ancho máximo de la barra de vida de la Casa
     # Inicializar la fuente
     fuente = pygame.font.Font(None, 36)
     
@@ -178,7 +182,7 @@ def juego_principal():
         centro_mata_y = y_mata + imagenes_mata[indice_imagen_mata].get_height() // 2
         
         distancia_mata = math.sqrt((centro_personaje_x - centro_mata_x) ** 2 + (centro_personaje_y - centro_mata_y) ** 2)
-        print(distancia_mata)
+        #print(distancia_mata)
         # Manejar eventos
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
@@ -276,11 +280,14 @@ def juego_principal():
         if distancia_mata < 100:  # Si la distancia es menor a 100 píxeles
            ventana.blit(imagen_e, (centro_mata_x - imagen_e.get_width() // 2, centro_mata_y - 100))  # Mostrar la imagen 'E' sobre la mata
 
-        # Verificar si el jugador presiona la tecla "E"
-        if teclas[pygame.K_e]:
-            vida_actual_casa = vida_maxima_casa  # Recargar la vida de la Casa
-            print("Recargando vida de la Casa")
+        # Verificar si el jugador presiona la tecla "E" cerca de la mata
+        if teclas[pygame.K_e] and distancia_mata < 100 and not ruleta_mostrando():
+            mostrar_ruleta()
         
+        # Dibujar la ruleta si está activa
+        if ruleta_mostrando():
+            vida_actual_casa = dibujar_ruleta(ventana, fondo_actual, ANCHO, ALTO, vida_actual_casa, vida_maxima_casa)
+
         # Dibujar la barra de vida
         dibujar_barra_vida(ventana, 40, 40, vida_actual_casa, vida_maxima_casa, ancho_barra_vida_casa, 20)
         
@@ -303,6 +310,7 @@ def juego_principal():
 
 # Dibujar la imagen actual de la mata en la pantalla
         ventana.blit(imagenes_mata[indice_imagen_mata], (x_mata, y_mata))
+        #ventana.blit(escudo, (0, 70))
         
         for bala in balas[:]:
             bala.mover()
