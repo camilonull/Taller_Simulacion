@@ -52,6 +52,12 @@ imagenes = {
     }
 }
 
+imagen_cursor = pygame.image.load("assets/fondos/mira.png")
+imagen_cursor = pygame.transform.scale(imagen_cursor, (35, 35))  # Escala si es necesario
+
+# Ocultar el cursor predeterminado
+pygame.mouse.set_visible(False)
+
 # Cargar la imagen de la letra "E"
 imagen_e = pygame.image.load("assets/botones/E.jpg")
 imagen_e = pygame.transform.scale(imagen_e, (50, 50))  # Escalarla al tamaño que quieras
@@ -307,8 +313,10 @@ def juego_principal():
                 balas.remove(bala)  # Eliminar la bala tras el impacto
                 if vida_actual_casa < 0:
                     vida_actual_casa = 0
+        ventana.blit(imagen_cursor, (pos_mouse[0] - imagen_cursor.get_width() // 2, pos_mouse[1] - imagen_cursor.get_height() // 2))
         # Actualizar la pantalla
         pygame.display.update()
+        
     pygame.quit()
 
 pantalla_inicio(ventana, ANCHO, ALTO)

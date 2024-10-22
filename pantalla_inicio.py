@@ -41,6 +41,9 @@ pos_y_personaje = ALTO - 80
 
 musica_reproduciendo = True
 
+imagen_cursor = pygame.image.load("assets/fondos/mira.png")
+imagen_cursor = pygame.transform.scale(imagen_cursor, (35, 35))  # Escala si es necesario
+
 # Función para dibujar y manejar el botón de música
 def dibujar_boton_musica(ventana):
     global musica_reproduciendo
@@ -97,7 +100,7 @@ def pantalla_inicio(ventana, ANCHO, ALTO):
     while iniciar:
         ventana.blit(fondo, (0, 0))
       
-        
+        pos_mouse = pygame.mouse.get_pos()
         # Dibujar botón que cambia de imagen al pasar el mouse
         if dibujar_boton_cambiable(ventana, ANCHO // 2 - boton_play1.get_width() // 2, ALTO // 1.5):
             iniciar = False  # Salir de la pantalla de inicio e iniciar el juego
@@ -110,7 +113,7 @@ def pantalla_inicio(ventana, ANCHO, ALTO):
             contador_pasos = 0
         
         dibujar_boton_musica(ventana)
-        
+        ventana.blit(imagen_cursor, (pos_mouse[0] - imagen_cursor.get_width() // 2, pos_mouse[1] - imagen_cursor.get_height() // 2))
         # Actualizar la pantalla
         pygame.display.update()
 
