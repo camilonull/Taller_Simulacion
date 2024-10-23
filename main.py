@@ -116,15 +116,36 @@ for direccion in imagenes:
 sonido_click = pygame.mixer.Sound("assets/sonidos/pistol-shot.wav")
 
 def dibujar_barra_vida(ventana, x, y, vida_actual, vida_maxima, ancho_maximo, alto):
-    # Calcula el porcentaje de vida actual
+    # Calcular el porcentaje de vida actual
     porcentaje_vida = vida_actual / vida_maxima
     # Calcular el ancho actual de la barra basado en el porcentaje de vida
     ancho_actual = int(ancho_maximo * porcentaje_vida)
-    
-    # Dibujar la barra de vida (color verde)
-    pygame.draw.rect(ventana, (0, 255, 0), (x, y, ancho_actual, alto))
-    # Dibujar el contorno de la barra de vida (color rojo)
-    pygame.draw.rect(ventana, (255, 0, 0), (x, y, ancho_maximo, alto), 2)
+
+    # Dibujar la barra de fondo (gris)
+    pygame.draw.rect(ventana, (128, 128, 128), (x, y, ancho_maximo, alto))
+
+    # Crear una superficie para la barra de vida con un gradiente
+    superficie_barra = pygame.Surface((ancho_actual, alto))
+    for i in range(ancho_actual):
+        verde = int(255 * (1 - i / ancho_actual))
+        rojo = int(255 * (i / ancho_actual))
+        superficie_barra.fill((verde, rojo, 0), rect=pygame.Rect(i, 0, 1, alto))
+
+    # Dibujar la barra de vida con el gradiente
+    ventana.blit(superficie_barra, (x, y))
+
+    # Dibujar el contorno de la barra de vida (negro)
+    pygame.draw.rect(ventana, (0, 0, 0), (x, y, ancho_maximo, alto), 2)
+
+    # Mostrar el valor numérico de la vida
+    font = pygame.font.Font(None, 24)
+    texto_vida = font.render(str(vida_actual), True, (255, 255, 255))
+    ventana.blit(texto_vida, (x + ancho_maximo // 2 - texto_vida.get_width() // 2, y - 20))
+
+    # Indicador de peligro (parpadeo cuando la vida es baja)
+    if vida_actual < vida_maxima * 0.25:
+        if pygame.time.get_ticks() % 1000 < 500:
+            pygame.draw.rect(ventana, (255, 0, 0), (x, y, ancho_maximo, alto), 2)
 
 
 
