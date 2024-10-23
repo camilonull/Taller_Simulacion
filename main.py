@@ -1,5 +1,6 @@
 import pygame
 import math
+from gameover import game_over
 from pantalla_inicio import pantalla_inicio
 from ruleta import mostrar_ruleta, dibujar_ruleta, ruleta_mostrando 
 from torreta import Torreta
@@ -153,7 +154,7 @@ def juego_principal():
 # Configuración inicial del personaje
     personaje = pygame.Rect(ANCHO // 2, ALTO // 2, 50, 50)
     velocidad = 5
-    direccion_actual = "frente"
+    
     estado_actual = "quieto"
     
     tiempo_ultima_interaccion = 0  # Tiempo de la última interacción
@@ -166,7 +167,7 @@ def juego_principal():
     balas = []
 
     vida_maxima_casa = 1000  # Vida total máxima de la Casa
-    vida_actual_casa = 1000  # Vida inicial de la Casa
+    vida_actual_casa = 10  # Vida inicial de la Casa
     ancho_barra_vida_casa = 500  # Ancho máximo de la barra de vida de la Casa
     # Inicializar la fuente
     fuente = pygame.font.Font(None, 36)
@@ -372,8 +373,9 @@ def juego_principal():
             if casa.collidepoint(bala.x, bala.y):
                 vida_actual_casa -= 10  # Reducir la vida de la Casa
                 balas.remove(bala)  # Eliminar la bala tras el impacto
-                if vida_actual_casa < 0:
-                    vida_actual_casa = 0
+                if vida_actual_casa <= 0:
+                    game_over(ventana, ANCHO, ALTO)
+                    ejecutando = False
         ventana.blit(imagen_cursor, (pos_mouse[0] - imagen_cursor.get_width() // 2, pos_mouse[1] - imagen_cursor.get_height() // 2))
         # Actualizar la pantalla
         pygame.display.update()

@@ -93,7 +93,7 @@ def dibujar_boton_cambiable(ventana, x, y):
 def pantalla_inicio(ventana, ANCHO, ALTO):
     # Inicializar la fuente
     pygame.mixer.music.load("assets/sonidos/fondo_musica.mp3")
-    pygame.mixer.music.set_volume(0.2)
+    pygame.mixer.music.set_volume(0.1)
     pygame.mixer.music.play(-1)  # Reproducir en bucle
     contador_pasos = 0
     iniciar = True
