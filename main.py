@@ -5,6 +5,7 @@ from pantalla_inicio import pantalla_inicio
 from ruleta import mostrar_ruleta, dibujar_ruleta, ruleta_mostrando 
 from torreta import Torreta
 from bala import Bala
+from enemigo import Enemigo
 # Inicializar Pygame
 pygame.init()
 
@@ -39,6 +40,8 @@ escudo = pygame.transform.scale(escudo, (330, 250))
 
 #Escalar fondo a la pantalla
 fondo = pygame.transform.scale(fondo, (ANCHO, ALTO)) 
+
+
 # Cargar imágenes del personaje para cada dirección y estado
 imagenes = {
     "frente": {
@@ -132,6 +135,12 @@ def dibujar_barra_vida(ventana, x, y, vida_actual, vida_maxima, ancho_maximo, al
 
 def juego_principal():
 # Configuración inicial del personaje
+    
+    # Configuración de generación de enemigos
+    punto_aparicion = (1150, 200)  # Coordenadas de aparición
+    enemigos = []  # Lista para almacenar los enemigos
+    tiempo_aparicion_enemigos = pygame.time.get_ticks()  # Tiempo de la última aparición
+    intervalo_aparicion = 500  # Intervalo de aparición en milisegundos (2 segundos)
     personaje = pygame.Rect(ANCHO // 2, ALTO // 2, 50, 50)
     velocidad = 5
     
@@ -147,7 +156,7 @@ def juego_principal():
     balas = []
 
     vida_maxima_casa = 1000  # Vida total máxima de la Casa
-    vida_actual_casa = 10  # Vida inicial de la Casa
+    vida_actual_casa = 500  # Vida inicial de la Casa
     ancho_barra_vida_casa = 500  # Ancho máximo de la barra de vida de la Casa
     # Inicializar la fuente
     fuente = pygame.font.Font(None, 36)
@@ -217,7 +226,17 @@ def juego_principal():
                     # Crear una nueva bala
                     nueva_bala = Bala(personaje.x + personaje.width // 2, personaje.y + personaje.height // 2, angulo_bala)
                     balas.append(nueva_bala)
-
+                    print(len(balas), "# de balas")
+         # Tiempo actual
+        tiempo_actual = pygame.time.get_ticks()
+        
+        # Generar nuevos enemigos cada intervalo de tiempo
+        if tiempo_actual - tiempo_aparicion_enemigos > intervalo_aparicion:
+            enemigo = Enemigo(punto_aparicion[0], punto_aparicion[1], 5)  # Velocidad 3 hacia la derecha
+            enemigos.append(enemigo)
+            tiempo_aparicion_enemigos = tiempo_actual    
+            print(len(enemigos), "# de enemigos")
+        
         # Obtener todas las teclas presionadas
         teclas = pygame.key.get_pressed()
 
@@ -310,19 +329,20 @@ def juego_principal():
         if ruleta_mostrando():
             vida_actual_casa, powerup_obtenido = dibujar_ruleta(ventana, fondo_actual, ANCHO, ALTO, vida_actual_casa, vida_maxima_casa)
 
-            if powerup_obtenido:  # Si hay un power-up obtenido
+            #if powerup_obtenido:  # Si hay un power-up obtenido
                 # Aquí puedes manejar el power-up, como activar la torreta
-                if powerup_obtenido == "torreta":
-                    torreta.activar()  # Activa la torreta
+                #if powerup_obtenido == "torreta":
+                    #torreta.activar()  # Activa la torreta
 
-        torreta.actualizar()  # Actualiza el estado de la torreta
-        torreta.dibujar(ventana)  # Dibuja la torreta en la ventana    
+        #torreta.actualizar()  # Actualiza el estado de la torreta
+        #torreta.dibujar(ventana)  # Dibuja la torreta en la ventana    
         # Dibuja el contador en pantalla
         if contador_activo:
             fuente = pygame.font.SysFont(None, 48)  # Crea una fuente
             texto_contador = fuente.render(f"{tiempo_restante}s", True, (255, 255, 255))  # Texto en blanco
             ventana.blit(texto_contador, (90, y_mata + 180))  # Dibuja el contador en la esquina superior izquierda
         # Dibujar la barra de vida
+        
         dibujar_barra_vida(ventana, 40, 40, vida_actual_casa, vida_maxima_casa, ancho_barra_vida_casa, 20)
         
         
@@ -346,16 +366,34 @@ def juego_principal():
         ventana.blit(imagenes_mata[indice_imagen_mata], (x_mata, y_mata))
         #ventana.blit(escudo, (0, 70))
         
+       
+        for enemigo in enemigos[:]:
+            enemigo.mover()
+            enemigo.dibujar(ventana)
+            
+            # Detectar colisiones con la casa u otros elementos, y remover si es necesario
+            if enemigo.rect.colliderect(casa):
+                vida_actual_casa -= 10  # Reducir la vida de la casa al colisionar
+                enemigos.remove(enemigo)
+                if vida_actual_casa <= 0:
+                   game_over(ventana, ANCHO, ALTO)
+                   ejecutando = False
+                # Verificar colisiones entre balsas y enemigos
         for bala in balas[:]:
             bala.mover()
             bala.dibujar(ventana)
-            # Detectar colisiones con la casa
-            if casa.collidepoint(bala.x, bala.y):
-                vida_actual_casa -= 10  # Reducir la vida de la Casa
-                balas.remove(bala)  # Eliminar la bala tras el impacto
-                if vida_actual_casa <= 0:
-                    game_over(ventana, ANCHO, ALTO)
-                    ejecutando = False
+
+            # Comprobar colisión con cada enemigo
+            for enemigo in enemigos[:]:
+                if bala.rect.colliderect(enemigo.rect):  # Detecta colisión
+                    balas.remove(bala)  # Elimina la bala
+                    enemigos.remove(enemigo)  # Elimina el enemigo
+                    break  # Sale del bucle interno para evitar errores de modificación de lista
+
+            # Opcional: eliminar balas fuera de la pantalla
+            if bala.x < 0 or bala.x > ANCHO or bala.y < 0 or bala.y > ALTO:
+                balas.remove(bala)
+
         ventana.blit(imagen_cursor, (pos_mouse[0] - imagen_cursor.get_width() // 2, pos_mouse[1] - imagen_cursor.get_height() // 2))
         # Actualizar la pantalla
         pygame.display.update()
@@ -365,4 +403,3 @@ def juego_principal():
 pantalla_inicio(ventana, ANCHO, ALTO)
 # Cerrar Pygame
 juego_principal()
-

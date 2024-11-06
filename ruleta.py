@@ -5,7 +5,8 @@ import random
 powerups = {
     "curar": pygame.transform.scale(pygame.image.load("assets/powerups/salud.png"), (100, 100)),
     "escudo": pygame.transform.scale(pygame.image.load("assets/powerups/escudo.png"), (100, 100)),
-    "torreta": pygame.transform.scale(pygame.image.load("assets/powerups/torreta.png"), (100, 100))
+    "cambio_arma": pygame.transform.scale(pygame.image.load("assets/powerups/escudo.png"), (100, 100)),
+    #"torreta": pygame.transform.scale(pygame.image.load("assets/powerups/torreta.png"), (100, 100))
 }
 
 # Variables internas de estado
