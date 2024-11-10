@@ -3,7 +3,6 @@ import math
 from gameover import game_over
 from pantalla_inicio import pantalla_inicio
 from ruleta import mostrar_ruleta, dibujar_ruleta, ruleta_mostrando 
-from torreta import Torreta
 from bala import Bala
 from enemigo import Enemigo
 # Inicializar Pygame
@@ -17,10 +16,10 @@ pygame.display.set_caption("Final Farm")
 
 # Definir colores
 BLANCO = (255, 255, 255)
+VERDE = (11, 60, 10)
+font_balas = pygame.font.Font(None, 36) 
 
-torreta_imagen = pygame.image.load("assets/powerups/torreta.png")
-# Crear una instancia de la torreta
-torreta = Torreta(ANCHO // 2 - 50, ALTO // 2 - 50, torreta_imagen) 
+
 
 # Cargar la imagen de fondo
 fondo = pygame.image.load("assets/fondos/fondo_juego_1.png")
@@ -99,6 +98,11 @@ for direccion in imagenes:
 
 sonido_click = pygame.mixer.Sound("assets/sonidos/pistol-shot.wav")
 
+def mostrar_contador_balas(balas_restantes):
+    texto_balas = font_balas.render(f"Balas: {balas_restantes}", True, VERDE)
+    ventana.blit(texto_balas, (ventana.get_width() - 150, 20))  # Posición en la esquina superior derecha
+
+
 def dibujar_barra_vida(ventana, x, y, vida_actual, vida_maxima, ancho_maximo, alto):
     # Calcular el porcentaje de vida actual
     porcentaje_vida = vida_actual / vida_maxima
@@ -131,11 +135,54 @@ def dibujar_barra_vida(ventana, x, y, vida_actual, vida_maxima, ancho_maximo, al
         if pygame.time.get_ticks() % 1000 < 500:
             pygame.draw.rect(ventana, (255, 0, 0), (x, y, ancho_maximo, alto), 2)
 
+def dibujar_barra_vida(ventana, x, y, vida_actual, vida_maxima, ancho_maximo,alto,con_escudo=False):
+    # Si el escudo está activo, cambia los parámetros de vida y color de barra
+    if con_escudo:
+        color_barra = (10, 180, 100)# Color naranja para el escudo
+    else:
+        color_barra = (255, 165, 0)# Verde para la vida regular
+
+    # Calcular el porcentaje de vida actual y el ancho de la barra
+    porcentaje_vida = vida_actual / vida_maxima
+    ancho_actual = int(ancho_maximo * porcentaje_vida)
+
+    # Dibujar la barra de fondo (gris)
+    pygame.draw.rect(ventana, (128, 128, 128), (x, y, ancho_maximo, alto))
+
+    # Crear una superficie para la barra de vida con un gradiente
+    superficie_barra = pygame.Surface((ancho_actual, alto))
+    for i in range(ancho_actual):
+        verde = int(color_barra[1] * (1 - i / ancho_actual))
+        rojo = int(color_barra[0] * (i / ancho_actual))
+        superficie_barra.fill((verde, rojo, 0), rect=pygame.Rect(i, 0, 1, alto))
+
+    # Dibujar la barra de vida con el gradiente
+    ventana.blit(superficie_barra, (x, y))
+
+    # Dibujar el contorno de la barra de vida (negro)
+    pygame.draw.rect(ventana, (0, 0, 0), (x, y, ancho_maximo, alto), 2)
+
+    # Mostrar el valor numérico de la vida
+    font = pygame.font.Font(None, 24)
+    texto_vida = font.render(str(vida_actual), True, (255, 255, 255))
+    ventana.blit(texto_vida, (x + ancho_maximo // 2 - texto_vida.get_width() // 2, y - 20))
+
+    # Dibujar imagen de escudo si está activo
+    if con_escudo:
+        imagen_escudo = pygame.image.load("assets\powerups\escudo.png")  # Carga tu imagen de escudo
+        imagen_escudo = pygame.transform.scale(imagen_escudo, (60, 60))  # Ajusta el tamaño del escudo
+        ventana.blit(imagen_escudo, (x + ancho_maximo + 10, y-30))
+
+    # Indicador de peligro (parpadeo cuando la vida es baja)
+    if vida_actual < vida_maxima * 0.25:
+        if pygame.time.get_ticks() % 1000 < 500:
+            pygame.draw.rect(ventana, (255, 0, 0), (x, y, ancho_maximo, alto), 2)
 
 
 def juego_principal():
-# Configuración inicial del personaje
-    
+    # Configuración inicial del personaje
+    # Definir el número inicial de balas
+    balas_restantes = 40
     # Configuración de generación de enemigos
     punto_aparicion = (1150, 200)  # Coordenadas de aparición
     enemigos = []  # Lista para almacenar los enemigos
@@ -145,6 +192,7 @@ def juego_principal():
     velocidad = 5
     
     estado_actual = "quieto"
+   
     
     tiempo_ultima_interaccion = 0  # Tiempo de la última interacción
     contador_activo = True  # Estado del contador
@@ -158,6 +206,10 @@ def juego_principal():
     vida_maxima_casa = 1000  # Vida total máxima de la Casa
     vida_actual_casa = 500  # Vida inicial de la Casa
     ancho_barra_vida_casa = 500  # Ancho máximo de la barra de vida de la Casa
+    
+    con_escudo = False
+    vida_maxima_escudo = 200
+    vida_escudo = 200
     # Inicializar la fuente
     fuente = pygame.font.Font(None, 36)
     
@@ -204,7 +256,7 @@ def juego_principal():
         
         if contador_activo:
             # Calcular el tiempo restante
-            tiempo_restante = 15 - (tiempo_actual - tiempo_ultima_interaccion) // 1000  # Convertir a segundos
+            tiempo_restante = 10 - (tiempo_actual - tiempo_ultima_interaccion) // 1000  # Convertir a segundos
 
             if tiempo_restante <= 0:
                 contador_activo = False  # Desactivar el contador si ha llegado a 0
@@ -216,17 +268,18 @@ def juego_principal():
             if evento.type == pygame.QUIT:
                 ejecutando = False
             elif evento.type == pygame.MOUSEBUTTONDOWN:
-                if evento.button == 1:  # Clic izquierdo
+                if evento.button == 1 and balas_restantes > 0:  # Clic izquierdo
                     sonido_click.play()
                     # Obtener la posición del mouse y calcular el ángulo de daisparo
                     pos_mouse = pygame.mouse.get_pos()
                     dx = pos_mouse[0] - (personaje.x + personaje.width // 2)
                     dy = pos_mouse[1] - (personaje.y + personaje.height // 2)
                     angulo_bala = math.degrees(math.atan2(-dy, dx))
+                    balas_restantes -= 1
                     # Crear una nueva bala
                     nueva_bala = Bala(personaje.x + personaje.width // 2, personaje.y + personaje.height // 2, angulo_bala)
                     balas.append(nueva_bala)
-                    print(len(balas), "# de balas")
+                    #print(len(balas), "# de balas")
          # Tiempo actual
         tiempo_actual = pygame.time.get_ticks()
         
@@ -235,7 +288,7 @@ def juego_principal():
             enemigo = Enemigo(punto_aparicion[0], punto_aparicion[1], 5)  # Velocidad 3 hacia la derecha
             enemigos.append(enemigo)
             tiempo_aparicion_enemigos = tiempo_actual    
-            print(len(enemigos), "# de enemigos")
+            #print(len(enemigos), "# de enemigos")
         
         # Obtener todas las teclas presionadas
         teclas = pygame.key.get_pressed()
@@ -322,16 +375,21 @@ def juego_principal():
         # Manejar la entrada de la tecla 'E'
         if teclas[pygame.K_e] and distancia_mata < 100 and not ruleta_mostrando():
             # Verificar si han pasado 10 segundos desde la última interacción
-            if tiempo_actual - tiempo_ultima_interaccion > 15000:  # 10000 ms = 10 segundos
+            if tiempo_actual - tiempo_ultima_interaccion > 10000:  # 10000 ms = 10 segundos
                 mostrar_ruleta()
                 tiempo_ultima_interaccion = tiempo_actual  # Actualiza la última interacción
                 contador_activo = True  # Activa el contador
         if ruleta_mostrando():
-            vida_actual_casa, powerup_obtenido = dibujar_ruleta(ventana, fondo_actual, ANCHO, ALTO, vida_actual_casa, vida_maxima_casa)
-
-            #if powerup_obtenido:  # Si hay un power-up obtenido
+            vida_actual_casa, powerup_obtenido, municion_nueva = dibujar_ruleta(ventana, vida_actual_casa, vida_maxima_casa, balas_restantes)
+           
+            print(powerup_obtenido)
+            if powerup_obtenido:  # Si hay un power-up obtenido
                 # Aquí puedes manejar el power-up, como activar la torreta
-                #if powerup_obtenido == "torreta":
+                if powerup_obtenido == "municion":
+                    balas_restantes = municion_nueva
+                elif powerup_obtenido == "escudo":
+                    vida_escudo = vida_maxima_escudo
+                    con_escudo = True
                     #torreta.activar()  # Activa la torreta
 
         #torreta.actualizar()  # Actualiza el estado de la torreta
@@ -342,9 +400,12 @@ def juego_principal():
             texto_contador = fuente.render(f"{tiempo_restante}s", True, (255, 255, 255))  # Texto en blanco
             ventana.blit(texto_contador, (90, y_mata + 180))  # Dibuja el contador en la esquina superior izquierda
         # Dibujar la barra de vida
-        
-        dibujar_barra_vida(ventana, 40, 40, vida_actual_casa, vida_maxima_casa, ancho_barra_vida_casa, 20)
-        
+        if con_escudo == False:
+            dibujar_barra_vida(ventana, 40, 40, vida_actual_casa, vida_maxima_casa, ancho_barra_vida_casa, 20, con_escudo=False)
+        else:
+            dibujar_barra_vida(ventana, 40, 40, vida_escudo, vida_maxima_escudo, ancho_barra_vida_casa, 20, con_escudo=True)
+       
+        mostrar_contador_balas(balas_restantes)
         
         # Dibujar el texto "Casa" sobre la barra de vida
         texto = fuente.render("Casa Napoles", True, (255, 255, 255))  # El color del texto es blanco
@@ -373,8 +434,13 @@ def juego_principal():
             
             # Detectar colisiones con la casa u otros elementos, y remover si es necesario
             if enemigo.rect.colliderect(casa):
-                vida_actual_casa -= 10  # Reducir la vida de la casa al colisionar
+                if con_escudo == False: 
+                    vida_actual_casa -= 10
+                else:
+                    vida_escudo -= 10# Reducir la vida de la casa al colisionar
                 enemigos.remove(enemigo)
+                if vida_escudo <= 0:
+                    con_escudo = False
                 if vida_actual_casa <= 0:
                    game_over(ventana, ANCHO, ALTO)
                    ejecutando = False
