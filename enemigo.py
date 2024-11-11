@@ -2,14 +2,13 @@ import pygame
 import numpy as np
 
 class Enemigo:
-    def __init__(self, x, y, velocidad):
+    def __init__(self, x, y):
         self.rect = pygame.Rect(x, y, 50, 50)  # Tamaño del enemigo
-        self.velocidad = velocidad
 
     def mover(self):
         num_aleatorio = np.random.uniform(0, 1)
         # Movimientos posibles: izquierda, arriba, abajo con probabilidades
-        movimientos = [(-2, 0), (0, -2), (0, 2)]
+        movimientos = [(-3, 0), (0, -3), (0, 3)]
         probabilidades = [0.4, 0.4, 0.2]
 
         if num_aleatorio < probabilidades[0]:

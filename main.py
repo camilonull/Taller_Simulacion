@@ -6,6 +6,8 @@ from pantalla_inicio import pantalla_inicio
 from ruleta import mostrar_ruleta, dibujar_ruleta, ruleta_mostrando 
 from bala import Bala
 from enemigo import Enemigo
+from generar_tiempos import generar_tiempos_entre_llegadas
+
 # Inicializar Pygame
 pygame.init()
 
@@ -13,13 +15,21 @@ pygame.init()
 ANCHO = 1200
 ALTO = 700
 ventana = pygame.display.set_mode((ANCHO, ALTO))
-pygame.display.set_caption("Final Farm")
+pygame.display.set_caption("Final Farm IX")
 
 # Definir colores
 BLANCO = (255, 255, 255)
 VERDE = (11, 60, 10)
 font_balas = pygame.font.Font(None, 36) 
 
+#SIMULACION ENEMIGOS
+lambd = 1  # Tasa de llegada (lambda)
+num_enemigos = 200  # Número de enemigos
+AIT = generar_tiempos_entre_llegadas(num_enemigos, lambd)
+AIT_ms = [int(a * 1000) for a in AIT]  # Convertir a milisegundos
+
+# Crear lista de tiempos acumulados de aparición
+tiempo_aparicion = [sum(AIT_ms[:i+1]) for i in range(len(AIT_ms))]
 
 
 # Cargar la imagen de fondo
@@ -181,21 +191,13 @@ def dibujar_barra_vida(ventana, x, y, vida_actual, vida_maxima, ancho_maximo,alt
 
 
 def juego_principal():
-    # Configuración inicial del personaje
+
     # Definir el número inicial de balas
     balas_restantes = 40
-    # Configuración de generación de enemigos
-    punto_aparicion = (1150, 200)  # Coordenadas de aparición
-
 
     # Parámetros de simulación
-    lambd = 1  # Tasa de llegada (lambda)
-    num_enemigos = 20  # Número de enemigos
-    AIT = np.random.exponential(1 / lambd, num_enemigos) * 1000  # Tiempos en ms
-    enemigos = []  
     
-    # Crear tiempos de aparición acumulados para cada enemigo
-    tiempo_aparicion = [int(sum(AIT[:i+1])) for i in range(len(AIT))]
+    enemigos = []  
     tiempo_inicial = pygame.time.get_ticks()
 
     personaje = pygame.Rect(ANCHO // 2, ALTO // 2, 50, 50)
@@ -214,7 +216,7 @@ def juego_principal():
     balas = []
 
     vida_maxima_casa = 1000  # Vida total máxima de la Casa
-    vida_actual_casa = 500  # Vida inicial de la Casa
+    vida_actual_casa = 1000  # Vida inicial de la Casa
     ancho_barra_vida_casa = 500  # Ancho máximo de la barra de vida de la Casa
     
     con_escudo = False
@@ -293,6 +295,11 @@ def juego_principal():
          # Tiempo actual
         tiempo_actual = pygame.time.get_ticks()
         
+        # Generar enemigos según tiempos de aparición
+        if tiempo_aparicion and tiempo_actual >= tiempo_aparicion[0]:
+            enemigo = Enemigo(1150, 550)
+            enemigos.append(enemigo)
+            tiempo_aparicion.pop(0)
        
         # Obtener todas las teclas presionadas
         teclas = pygame.key.get_pressed()
@@ -422,20 +429,19 @@ def juego_principal():
         #pygame.draw.rect(ventana, (255, 0, 0), casa) 
         tiempo_actual = pygame.time.get_ticks()
 
-    # Cambiar la imagen cada 1000 milisegundos (1 segundo)
+        # Cambiar la imagen cada 1000 milisegundos (1 segundo)
         if tiempo_actual - tiempo_cambio_mata > 1000:
             indice_imagen_mata = (indice_imagen_mata + 1) % len(imagenes_mata)  # Alternar entre 0, 1 y 2
             tiempo_cambio_mata = tiempo_actual  # Reiniciar el tiempo
 
-# Dibujar la imagen actual de la mata en la pantalla
+        # Dibujar la imagen actual de la mata en la pantalla
         ventana.blit(imagenes_mata[indice_imagen_mata], (x_mata, y_mata))
         #ventana.blit(escudo, (0, 70))
         
-       
         for enemigo in enemigos[:]:
             enemigo.mover()
             enemigo.dibujar(ventana)
-            
+
             # Detectar colisiones con la casa u otros elementos, y remover si es necesario
             if enemigo.rect.colliderect(casa):
                 if con_escudo == False: 
@@ -448,7 +454,7 @@ def juego_principal():
                 if vida_actual_casa <= 0:
                    game_over(ventana, ANCHO, ALTO)
                    ejecutando = False
-                # Verificar colisiones entre balsas y enemigos
+              
         for bala in balas[:]:
             bala.mover()
             bala.dibujar(ventana)
