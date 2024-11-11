@@ -1,5 +1,6 @@
 import pygame
 import math
+import numpy as np
 from gameover import game_over
 from pantalla_inicio import pantalla_inicio
 from ruleta import mostrar_ruleta, dibujar_ruleta, ruleta_mostrando 
@@ -185,9 +186,18 @@ def juego_principal():
     balas_restantes = 40
     # Configuración de generación de enemigos
     punto_aparicion = (1150, 200)  # Coordenadas de aparición
-    enemigos = []  # Lista para almacenar los enemigos
-    tiempo_aparicion_enemigos = pygame.time.get_ticks()  # Tiempo de la última aparición
-    intervalo_aparicion = 500  # Intervalo de aparición en milisegundos (2 segundos)
+
+
+    # Parámetros de simulación
+    lambd = 1  # Tasa de llegada (lambda)
+    num_enemigos = 20  # Número de enemigos
+    AIT = np.random.exponential(1 / lambd, num_enemigos) * 1000  # Tiempos en ms
+    enemigos = []  
+    
+    # Crear tiempos de aparición acumulados para cada enemigo
+    tiempo_aparicion = [int(sum(AIT[:i+1])) for i in range(len(AIT))]
+    tiempo_inicial = pygame.time.get_ticks()
+
     personaje = pygame.Rect(ANCHO // 2, ALTO // 2, 50, 50)
     velocidad = 5
     
@@ -283,13 +293,7 @@ def juego_principal():
          # Tiempo actual
         tiempo_actual = pygame.time.get_ticks()
         
-        # Generar nuevos enemigos cada intervalo de tiempo
-        if tiempo_actual - tiempo_aparicion_enemigos > intervalo_aparicion:
-            enemigo = Enemigo(punto_aparicion[0], punto_aparicion[1], 5)  # Velocidad 3 hacia la derecha
-            enemigos.append(enemigo)
-            tiempo_aparicion_enemigos = tiempo_actual    
-            #print(len(enemigos), "# de enemigos")
-        
+       
         # Obtener todas las teclas presionadas
         teclas = pygame.key.get_pressed()
 
