@@ -24,7 +24,7 @@ font_balas = pygame.font.Font(None, 36)
 
 #SIMULACION ENEMIGOS
 lambd = 1  # Tasa de llegada (lambda)
-num_enemigos = 200  # Número de enemigos
+num_enemigos = 20  # Número de enemigos
 AIT = generar_tiempos_entre_llegadas(num_enemigos, lambd)
 AIT_ms = [int(a * 1000) for a in AIT]  # Convertir a milisegundos
 
