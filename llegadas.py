@@ -6,8 +6,8 @@ import threading
 from generadorNumeros import congruencial_lineal
 
 # Parámetros
-lambd = 1  # tasa de llegada (lambda)
-num_clientes = 20  # número de clientes
+lambd = 100  # tasa de llegada (lambda)
+num_clientes = 5  # número de clientes
 
 # Generar números aleatorios uniformes (Ri) y tiempos inter-arrival (AIT)
 Xi, Ri = congruencial_lineal(77, 2, 1, 5, num_clientes)
@@ -83,3 +83,44 @@ iniciar_simulacion(canvas)
 
 # Iniciar la ventana principal
 root.mainloop()
+
+
+# Definir la matriz de transición (4 estados)
+P = np.array([[0.1, 0.3, 0.4, 0.2],  # Desde el estado 0
+              [0.2, 0.5, 0.1, 0.2],  # Desde el estado 1
+              [0.3, 0.2, 0.3, 0.2],  # Desde el estado 2
+              [0.4, 0.3, 0.1, 0.2]]) # Desde el estado 3
+
+# Definir una función que simula la transición de estados usando Monte Carlo
+def simular_cadena_markov(P, estado_inicial, num_pasos):
+    estado_actual = estado_inicial
+    secuencia_estados = [estado_actual]  # Guarda la secuencia de estados
+    Xi, num_aleatorio = congruencial_lineal(13, 832262, 1013904223, 32, num_pasos)
+
+    for i in range(num_pasos):
+        # Generar un número aleatorio
+        num = num_aleatorio[i]
+        # Obtener las probabilidades de transición para el estado actual
+        probabilidades_transicion = P[estado_actual]
+        print(probabilidades_transicion)
+        # Calcular los intervalos acumulados para la selección del próximo estado
+        intervalos = np.cumsum(probabilidades_transicion)
+
+        # Determinar el siguiente estado en función del número aleatorio
+        siguiente_estado = np.where(intervalos >= num)[0][0]
+
+        # Actualizar el estado actual
+        estado_actual = siguiente_estado
+        secuencia_estados.append(estado_actual)
+
+    return secuencia_estados
+
+# Parámetros
+estado_inicial = 0  # El estado inicial es 0
+num_pasos = 10  # Número de pasos a simular
+
+# Simular la cadena de Markov
+secuencia = simular_cadena_markov(P, estado_inicial, num_pasos)
+
+# Mostrar los resultados
+print(f"Secuencia de estados simulada: {secuencia}")
