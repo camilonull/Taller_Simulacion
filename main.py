@@ -1,3 +1,4 @@
+import random
 import pygame
 import math
 import numpy as np
@@ -23,7 +24,7 @@ VERDE = (11, 60, 10)
 font_balas = pygame.font.Font(None, 36) 
 
 #SIMULACION ENEMIGOS
-lambd = 1  # Tasa de llegada (lambda)
+lambd = 100  # Tasa de llegada (lambda)
 num_enemigos = 20  # Número de enemigos
 AIT = generar_tiempos_entre_llegadas(num_enemigos, lambd)
 AIT_ms = [int(a * 1000) for a in AIT]  # Convertir a milisegundos
@@ -295,9 +296,13 @@ def juego_principal():
          # Tiempo actual
         tiempo_actual = pygame.time.get_ticks()
         
+        
+        spawnsEnemigos = [(1150, 550), (1000, 550), (900, 550),(800, 550),(1150, 450), (1000, 450), (900, 450),(800, 450),(1150, 650),(1150, 600),(1150, 620)]
+
         # Generar enemigos según tiempos de aparición
         if tiempo_aparicion and tiempo_actual >= tiempo_aparicion[0]:
-            enemigo = Enemigo(1150, 550)
+            spawn = random.choice(spawnsEnemigos)
+            enemigo = Enemigo(spawn[0], spawn[1])
             enemigos.append(enemigo)
             tiempo_aparicion.pop(0)
        
@@ -386,7 +391,7 @@ def juego_principal():
         # Manejar la entrada de la tecla 'E'
         if teclas[pygame.K_e] and distancia_mata < 100 and not ruleta_mostrando():
             # Verificar si han pasado 10 segundos desde la última interacción
-            if tiempo_actual - tiempo_ultima_interaccion > 10000:  # 10000 ms = 10 segundos
+            if tiempo_actual - tiempo_ultima_interaccion > 3000:  # 10000 ms = 10 segundos
                 mostrar_ruleta()
                 tiempo_ultima_interaccion = tiempo_actual  # Actualiza la última interacción
                 contador_activo = True  # Activa el contador

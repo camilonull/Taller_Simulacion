@@ -1,9 +1,22 @@
 # generador_tiempos.py
 import numpy as np
-from generadorNumeros import congruencial_lineal
+from generadorNumeros import congruencial_lineal, verificacionRi
 
 def generar_tiempos_entre_llegadas(num_clientes, lambd):
     # Generar números aleatorios (Ri) usando tu método congruencial lineal
-    Xi, Ri = congruencial_lineal(77, 2, 1, 5, num_clientes)
-    AIT = [-np.log(1 - ri) / lambd for ri in Ri]  # Calcular tiempos entre llegadas
+    
+    numerosProbados = False
+    AIT = []
+    while(numerosProbados == False):
+          Xi, Ri = congruencial_lineal(13, 832262, 1013904223, 32, num_clientes)
+          numerosProbados = verificacionRi(Ri)
+    
+    
+    # Validar que no haya valores de Ri cercanos a 1, para evitar infinito
+    for ri in Ri:
+        if ri == 1:
+            ri = 1 - 1e-10  # Asegurarse de que no sea exactamente 1
+        AIT.append(-np.log(1 - ri) / lambd)  # Calcular tiempos entre llegadas
+
     return AIT
+

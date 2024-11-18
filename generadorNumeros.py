@@ -14,9 +14,10 @@ def congruencial_lineal(X0, k, c, g, n):
     
     for _ in range(n):  # Repite el proceso n veces.
         x = (a * x + c) % m  # Calcula el siguiente valor de x.
-        Ri = x / (m -1)  # Normaliza el número para que esté en [0, 1].      
-        resultXi.append(x) 
-        resultRi.append(Ri) 
+        Ri = x / (m -1)  # Normaliza el número para que esté en [0, 1].   
+        if(Ri != 0 and Ri != 1):   
+            resultXi.append(x) 
+            resultRi.append(Ri) 
         
     
     return resultXi, resultRi  # Retorna el último Ri y la lista de resultados.
@@ -56,7 +57,7 @@ def prueba_de_medias(datos):
     cumple = LI <= media_observada <= LS  # Verificar si la media está dentro del intervalo
     
     # Mostrar los resultados en un mensaje
-    print("Cumple la prueba de medias: ", cumple)
+    #print("Cumple la prueba de medias: ", cumple)
     #return cumple, media_observada, LI, LS
     return cumple
 
@@ -76,7 +77,7 @@ def prueba_de_varianza(numeros):
     cumple = LI <= 1/12 <= LS  # Verificar si la varianza teórica (1/12) está dentro del intervalo
     
     # Mostrar los resultados en un mensaje
-    print("Cumple la prueba de varianza: ", cumple)
+    #print("Cumple la prueba de varianza: ", cumple)
     return cumple
 
 # Función para calcular el número de intervalos usando la regla de Sturges
@@ -93,10 +94,12 @@ def prueba_ks(numeros_generados):
 
     # Verificar si Dmax cumple con la prueba
     if estadistico_ks < Dcrit:
-        resultado_prueba = "La prueba de KS se cumple: no se rechaza la hipótesis nula."
+        resultado_prueba = "La prueba de KS se cumple"
+        #print("Cumple la prueba de varianza: ", resultado_prueba)
         return True
     else:
         resultado_prueba = "La prueba de KS no se cumple: se rechaza la hipótesis nula."
+        #print("Cumple la prueba de varianza: ", resultado_prueba)
         return False
     
     """resultado = (
@@ -138,9 +141,11 @@ def prueba_chi_cuadrado(numeros_generados, alpha=0.05):
     # Verificar si se cumple la prueba de Chi-cuadrado
     if chi_cuadrado < valor_critico:
         resultado_prueba = "La prueba de Chi-Cuadrado se cumple: no se rechaza la hipótesis nula."
+        #print("Cumple la prueba de varianza: ", resultado_prueba)
         return True
     else:
         resultado_prueba = "La prueba de Chi-Cuadrado no se cumple: se rechaza la hipótesis nula."
+        #print("Cumple la prueba de varianza: ", resultado_prueba)
         return False
 
     # Crear el mensaje para mostrar
@@ -215,9 +220,11 @@ def prueba_poker(datos, alpha=0.05):
     # Verificar si pasa la prueba de Chi-cuadrado
     if chi_cuadrado < valor_critico:
         resultado_prueba = "La prueba de Póker se cumple: no se rechaza la hipótesis nula."
+        #print("Cumple la prueba de varianza: ", resultado_prueba)
         return True
     else:
         resultado_prueba = "La prueba de Póker no se cumple: se rechaza la hipótesis nula."
+        #print("Cumple la prueba de varianza: ", resultado_prueba)
         return False
     
     # Mostrar resultados
@@ -242,11 +249,11 @@ def verificacionRi(Ri):
 
 def ejecutar_congruencial_lineal():
         """Ejecuta la generación de números usando congruencial lineal y muestra los resultados."""
-        X0 =   1# Obtiene la semilla ingresada.
-        k =   2 # Obtiene el valor de k.
-        c =  3 # Obtiene el valor de c.
-        g =   7 # Obtiene el valor de g.
-        n = 20 # Obtiene el número de números a generar.
+        X0 =  4434 # Obtiene la semilla ingresada.
+        k =   832262 # Obtiene el valor de k.
+        c =  1013904223 # Obtiene el valor de c.
+        g =   32 # Obtiene el valor de g.
+        n = 1000 # Obtiene el número de números a generar.
         min_val = 30  # Obtiene el valor mínimo.
         max_val = 60 # Obtiene el valor máximo.
 
@@ -268,4 +275,4 @@ def ejecutar_congruencial_lineal():
         print(resultados_mensaje_Normal)
         print("Pruebas de Numeros", verificacionRi(Ri))
 
-#ejecutar_congruencial_lineal()
+ejecutar_congruencial_lineal()
