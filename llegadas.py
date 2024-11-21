@@ -26,10 +26,6 @@ root = tk.Tk()
 root.title("Simulación de Llegadas")
 root.geometry("800x600")
 
-# Método propio de generación de números aleatorios
-def mi_generador_aleatorio():
-    # Implementa tu propio método de generación de números aleatorios
-    return np.random.uniform(0, 1)
 
 # Función para mover un cuadro en una caminata aleatoria con mayor probabilidad de moverse a la izquierda
 def mover_cuadro(canvas, rect):
@@ -40,7 +36,7 @@ def mover_cuadro(canvas, rect):
             break
 
         # Generar un número aleatorio con tu método
-        num_aleatorio = mi_generador_aleatorio()
+        num_aleatorio = congruencial_lineal(13, 2, 1, 5, 100)
 
         # Definir los movimientos posibles y sus probabilidades
         movimientos = [(-2, 0), (0, -2), (0, 2)]  # Izquierda, arriba, abajo

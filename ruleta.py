@@ -2,7 +2,7 @@ import numpy as np
 import pygame
 import random
 
-from generadorNumeros import congruencial_lineal
+from generadorNumeros import congruencial_lineal, verificacionRi
 
 # Cargar imágenes de los power-ups
 powerups = {
@@ -51,7 +51,11 @@ indice_Ri = 0
 def dibujar_ruleta(ventana, vida_actual_casa, vida_maxima_casa, municion_actual):
     global _ruleta_mostrando, _powerup_seleccionado, indice_Ri
     # Generar un arreglo de números pseudoaleatorios con congruencial lineal
-    Xi, num_aleatorio_arr = congruencial_lineal(13, 832262, 1013904223, 32, 5)
+    numerosProbados = False
+    while(numerosProbados == False):
+          Xi, num_aleatorio_arr = congruencial_lineal(13, 832262, 1013904223, 32, 50)
+          numerosProbados = verificacionRi(num_aleatorio_arr)
+
     # Si la ruleta está mostrando, selecciona el siguiente power-up con la cadena de Markov
     if _ruleta_mostrando:       
         # Elegir el siguiente número de Ri en la secuencia
@@ -62,8 +66,6 @@ def dibujar_ruleta(ventana, vida_actual_casa, vida_maxima_casa, municion_actual)
         else:
             # Seleccionar el siguiente power-up usando la cadena de Markov
             _powerup_seleccionado = seleccionar_powerup_markov(_powerup_seleccionado, num_aleatorio)
-        
-        print(f"Power-up seleccionado: {_powerup_seleccionado}")
 
         # Aplicar el power-up seleccionado
         vida_actual_casa, municion_actual = aplicar_powerup(_powerup_seleccionado, vida_actual_casa, vida_maxima_casa, municion_actual)
