@@ -220,11 +220,11 @@ def prueba_poker(datos, alpha=0.05):
     # Verificar si pasa la prueba de Chi-cuadrado
     if chi_cuadrado < valor_critico:
         resultado_prueba = "La prueba de Póker se cumple: no se rechaza la hipótesis nula."
-        #print("Cumple la prueba de varianza: ", resultado_prueba)
+        
         return True
     else:
         resultado_prueba = "La prueba de Póker no se cumple: se rechaza la hipótesis nula."
-        #print("Cumple la prueba de varianza: ", resultado_prueba)
+
         return False
     
     # Mostrar resultados
@@ -247,32 +247,3 @@ def verificacionRi(Ri):
     else:
         return False
 
-def ejecutar_congruencial_lineal():
-        """Ejecuta la generación de números usando congruencial lineal y muestra los resultados."""
-        X0 =  4434 # Obtiene la semilla ingresada.
-        k =   832262 # Obtiene el valor de k.
-        c =  1013904223 # Obtiene el valor de c.
-        g =   32 # Obtiene el valor de g.
-        n = 1000 # Obtiene el número de números a generar.
-        min_val = 30  # Obtiene el valor mínimo.
-        max_val = 60 # Obtiene el valor máximo.
-
-        #Numeros generados con el metodo propio
-        Xi, Ri = congruencial_lineal(X0, k, c, g, n)  # Genera los números.
-        resultados_Uniformes = numero_dis_unirfome(Ri, min_val, max_val)
-        resultados_Normal = numero_dis_normal(Ri, 90, 30, min_val, max_val)
-
-
-        # Concatenar los resultados para mostrarlos en el mensaje
-        resultados_mensaje_Uniforme = f"Números generados: {resultados_Uniformes}\nXi generados: {Xi}\nRi generados: {Ri}"
-        resultados_mensaje_Normal = f"Números generados Normal: {resultados_Normal}\nXi generados: {Xi}\nRi generados: {Ri}"
-        prueba_chi_cuadrado(Ri)
-        prueba_de_medias(Ri)
-        prueba_de_varianza(Ri)
-        prueba_ks(Ri)
-        prueba_poker(Ri)
-        print(resultados_mensaje_Uniforme)
-        print(resultados_mensaje_Normal)
-        print("Pruebas de Numeros", verificacionRi(Ri))
-
-ejecutar_congruencial_lineal()

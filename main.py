@@ -23,15 +23,29 @@ BLANCO = (255, 255, 255)
 VERDE = (11, 60, 10)
 font_balas = pygame.font.Font(None, 36) 
 
-#SIMULACION ENEMIGOS
-lambd = 100  # Tasa de llegada (lambda)
-num_enemigos = 20  # Número de enemigos
-AIT = generar_tiempos_entre_llegadas(num_enemigos, lambd)
+#SIMULACION ENEMIGOS SAPOS
+lambd_sapos = 100  # Tasa de llegada (lambda)
+num_enemigos = 10  # Número de enemigos
+AIT = generar_tiempos_entre_llegadas(num_enemigos, lambd_sapos)
 AIT_ms = [int(a * 1000) for a in AIT]  # Convertir a milisegundos
 
 # Crear lista de tiempos acumulados de aparición
 tiempo_aparicion = [sum(AIT_ms[:i+1]) for i in range(len(AIT_ms))]
 
+#SIMULACION ENEMIGOS SAPOS
+lambd_aves = 100  # Tasa de llegada (lambda) para los enemigos de la esquina superior derecha
+num_enemigos_2 = 10  # Número de enemigos para la segunda oleada
+AIT_aves = generar_tiempos_entre_llegadas(num_enemigos_2, lambd_aves)
+AIT_ms_sapos = [int(a * 1000) for a in AIT_aves]  # Convertir a milisegundos
+
+# Crear lista de tiempos acumulados de aparición para la segunda oleada
+tiempo_aparicion_2 = [sum(AIT_ms_sapos[:i + 1]) for i in range(len(AIT_ms_sapos))]
+
+# Cargar imagenes enemigos 
+sapo_normal = "assets\\enemigos\\sapo.png"
+sapo_salto = "assets\\enemigos\\sapo_salto.png"
+ave_normal = "assets\\enemigos\\sapo.png"
+ave_vuelo = "assets\\enemigos\\sapo_salto.png"
 
 # Cargar la imagen de fondo
 fondo = pygame.image.load("assets/fondos/fondo_juego_1.png")
@@ -201,6 +215,10 @@ def juego_principal():
     enemigos = []  
     tiempo_inicial = pygame.time.get_ticks()
 
+    enemigos_aves = []  # Lista para los enemigos de la segunda oleada
+    tiempo_inicial_aves = pygame.time.get_ticks()  # Tiempo inicial para los enemigos de la segunda oleada
+
+
     personaje = pygame.Rect(ANCHO // 2, ALTO // 2, 50, 50)
     velocidad = 5
     
@@ -275,7 +293,7 @@ def juego_principal():
                 contador_activo = False  # Desactivar el contador si ha llegado a 0
                 tiempo_restante = 0  # Asegúrate de que no se muestre un valor negativo
         distancia_mata = math.sqrt((centro_personaje_x - centro_mata_x) ** 2 + (centro_personaje_y - centro_mata_y) ** 2)
-        #print(distancia_mata)
+
         # Manejar eventos
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
@@ -295,17 +313,25 @@ def juego_principal():
                     #print(len(balas), "# de balas")
          # Tiempo actual
         tiempo_actual = pygame.time.get_ticks()
-        
-        
-        spawnsEnemigos = [(1150, 550), (1000, 550), (900, 550),(800, 550),(1150, 450), (1000, 450), (900, 450),(800, 450),(1150, 650),(1150, 600),(1150, 620)]
+
+        spawnsEnemigos_sapos = [(1150, 550), (1000, 550), (900, 550),(800, 550),(1150, 450), (1000, 450), (900, 450),(800, 450),(1150, 650),(1150, 600),(1150, 620)]
+        spawnsEnemigos_aves = [(1150, 150), (1150, 120), (1000, 100),(1000, 150),(800, 100), (800, 150)]
+
 
         # Generar enemigos según tiempos de aparición
         if tiempo_aparicion and tiempo_actual >= tiempo_aparicion[0]:
-            spawn = random.choice(spawnsEnemigos)
-            enemigo = Enemigo(spawn[0], spawn[1])
+            spawn = random.choice(spawnsEnemigos_sapos)
+            enemigo = Enemigo(spawn[0], spawn[1], sapo_normal, sapo_salto, "sapo")
             enemigos.append(enemigo)
             tiempo_aparicion.pop(0)
        
+        # Manejo de la segunda oleada de enemigos
+        if tiempo_aparicion_2 and tiempo_actual >= tiempo_aparicion_2[0]:
+            spawn = random.choice(spawnsEnemigos_aves)
+            enemigo_ave = Enemigo(1150, 100, ave_normal, ave_vuelo, "ave")
+            enemigos_aves.append(enemigo_ave)
+            tiempo_aparicion_2.pop(0)
+
         # Obtener todas las teclas presionadas
         teclas = pygame.key.get_pressed()
 
@@ -397,8 +423,7 @@ def juego_principal():
                 contador_activo = True  # Activa el contador
         if ruleta_mostrando():
             vida_actual_casa, powerup_obtenido, municion_nueva = dibujar_ruleta(ventana, vida_actual_casa, vida_maxima_casa, balas_restantes)
-           
-            print(powerup_obtenido)
+
             if powerup_obtenido:  # Si hay un power-up obtenido
                 # Aquí puedes manejar el power-up, como activar la torreta
                 if powerup_obtenido == "municion":
@@ -406,10 +431,7 @@ def juego_principal():
                 elif powerup_obtenido == "escudo":
                     vida_escudo = vida_maxima_escudo
                     con_escudo = True
-                    #torreta.activar()  # Activa la torreta
-
-        #torreta.actualizar()  # Actualiza el estado de la torreta
-        #torreta.dibujar(ventana)  # Dibuja la torreta en la ventana    
+ 
         # Dibuja el contador en pantalla
         if contador_activo:
             fuente = pygame.font.SysFont(None, 48)  # Crea una fuente
@@ -459,6 +481,23 @@ def juego_principal():
                 if vida_actual_casa <= 0:
                    game_over(ventana, ANCHO, ALTO)
                    ejecutando = False
+        
+        for enemigo in enemigos_aves[:]:
+            enemigo.mover()
+            enemigo.dibujar(ventana)
+
+            # Detectar colisiones con la casa u otros elementos, y remover si es necesario
+            if enemigo.rect.colliderect(casa):
+                if con_escudo == False: 
+                    vida_actual_casa -= 10
+                else:
+                    vida_escudo -= 10# Reducir la vida de la casa al colisionar
+                enemigos_aves.remove(enemigo)
+                if vida_escudo <= 0:
+                    con_escudo = False
+                if vida_actual_casa <= 0:
+                   game_over(ventana, ANCHO, ALTO)
+                   ejecutando = False
               
         for bala in balas[:]:
             bala.mover()
@@ -470,8 +509,14 @@ def juego_principal():
                     balas.remove(bala)  # Elimina la bala
                     enemigos.remove(enemigo)  # Elimina el enemigo
                     break  # Sale del bucle interno para evitar errores de modificación de lista
+            
+            for enemigo in enemigos_aves[:]:
+                if bala.rect.colliderect(enemigo.rect):  # Detecta colisión
+                    balas.remove(bala)  # Elimina la bala
+                    enemigos_aves.remove(enemigo)  # Elimina el enemigo
+                    break  # Sale del bucle interno para evitar errores de modificación de lista
 
-            # Opcional: eliminar balas fuera de la pantalla
+            # Opcional: eliminar balas fuera de la pantalsla
             if bala.x < 0 or bala.x > ANCHO or bala.y < 0 or bala.y > ALTO:
                 balas.remove(bala)
 

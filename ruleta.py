@@ -12,8 +12,8 @@ powerups = {
 }
 
 P = np.array([
-    [0.5, 0.3, 0.2],  # Desde "curar"
-    [0.2, 0.5, 0.3],  # Desde "escudo"
+    [0.4, 0.3, 0.3],  # Desde "curar"
+    [0.2, 0.3, 0.5],  # Desde "escudo"
     [0.3, 0.3, 0.4],  # Desde "municion"
 ])
 
