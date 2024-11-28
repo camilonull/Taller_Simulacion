@@ -3,12 +3,12 @@ import pygame
 import math
 import numpy as np
 from gameover import game_over
-from jefe_final import Agente
 from pantalla_inicio import pantalla_inicio
 from ruleta import mostrar_ruleta, dibujar_ruleta, ruleta_mostrando 
 from bala import Bala
 from enemigo import Enemigo
 from generar_tiempos import generar_tiempos_entre_llegadas
+from jefe_final import start_game
 
 # Inicializar Pygame
 pygame.init()
@@ -333,10 +333,6 @@ def juego_principal():
             enemigos_aves.append(enemigo_ave)
             tiempo_aparicion_2.pop(0)
 
-        # Comprueba si las listas de enemigos están vacías
-        if not enemigos and not enemigos_aves:
-            combate_boss(200, 200)
-            break  # Sal del bucle principal tras el combate
         
         # Obtener todas las teclas presionadas
         teclas = pygame.key.get_pressed()
@@ -474,7 +470,13 @@ def juego_principal():
         for enemigo in enemigos[:]:
             enemigo.mover()
             enemigo.dibujar(ventana)
-
+            
+            # Detectar si el enemigo está fuera de la pantalla
+            if (enemigo.rect.right < 0 or enemigo.rect.left > ANCHO or 
+                enemigo.rect.bottom < 0 or enemigo.rect.top > ALTO):
+                enemigos.remove(enemigo)  # Eliminar enemigo si está fuera de los límites
+                continue  # Saltar el resto del bucle para este enemigo
+            
             # Detectar colisiones con la casa u otros elementos, y remover si es necesario
             if enemigo.rect.colliderect(casa):
                 if con_escudo == False: 
@@ -492,6 +494,11 @@ def juego_principal():
             enemigo.mover()
             enemigo.dibujar(ventana)
 
+              # Detectar si el enemigo está fuera de la pantalla
+            if (enemigo.rect.right < 0 or enemigo.rect.left > ANCHO or 
+                enemigo.rect.bottom < 0 or enemigo.rect.top > ALTO):
+                enemigos_aves.remove(enemigo)  # Eliminar enemigo si está fuera de los límites
+                continue  # Saltar el resto del bucle para este enemigo
             # Detectar colisiones con la casa u otros elementos, y remover si es necesario
             if enemigo.rect.colliderect(casa):
                 if con_escudo == False: 
@@ -521,12 +528,17 @@ def juego_principal():
                     balas.remove(bala)  # Elimina la bala
                     enemigos_aves.remove(enemigo)  # Elimina el enemigo
                     break  # Sale del bucle interno para evitar errores de modificación de lista
-
             # Opcional: eliminar balas fuera de la pantalsla
             if bala.x < 0 or bala.x > ANCHO or bala.y < 0 or bala.y > ALTO:
                 balas.remove(bala)
 
         ventana.blit(imagen_cursor, (pos_mouse[0] - imagen_cursor.get_width() // 2, pos_mouse[1] - imagen_cursor.get_height() // 2))
+        # Comprueba si las listas de enemigos están vacías
+        print(enemigos, enemigos_aves)
+        if not enemigos and not enemigos_aves:
+            print("jefe final iniciar")
+            start_game()
+            break  # Sal del bucle principal tras el combate
         # Actualizar la pantalla
         pygame.display.update()
         
@@ -534,56 +546,5 @@ def juego_principal():
 
 pantalla_inicio(ventana, ANCHO, ALTO)
 # Cerrar Pygame
-
-# Comportamiento de los agentes en el combate contra el jefe
-def combate_boss(jugador, enemigos):
-    """ Función para manejar el combate con el jefe utilizando simulación por agentes. """
-    
-    # Definir el jefe y sus secuaces (agentes)
-    jefe = Agente("Jefe Supremo", "jefe", 500, 30, 10, 5, ANCHO, ALTO)
-    secuaz1 = Agente("Secuaz A", "secuaz", 200, 20, 5, 3, ANCHO, ALTO)
-    secuaz2 = Agente("Secuaz B", "secuaz", 200, 20, 5, 3, ANCHO, ALTO)
-    
-    enemigos = [jefe, secuaz1, secuaz2]
-    
-    # Iniciar el combate
-    while True:
-        # Mostrar información de la batalla
-        ventana.fill((0, 0, 0))  # Limpiar pantalla
-        dibujar_barra_vida(ventana, 50, 50, jefe.vida_actual, jefe.vida_maxima, 300, 20)
-        
-        for secuaz in enemigos[1:]:
-            dibujar_barra_vida(ventana, 50, 100 + enemigos.index(secuaz) * 30, secuaz.vida_actual, secuaz.vida_maxima, 300, 20)
-
-        # Mover enemigos (simulación de comportamiento)
-        for secuaz in enemigos:
-            secuaz.moverse()
-
-        # Lógica de ataque
-        if random.random() < 0.1:  # 10% de probabilidad de que el jugador ataque
-            dano = random.randint(15, 25)  # Ataque del jugador
-            dano_recibido = jefe.recibir_ataque(dano)
-            print(f"El jugador ataca al {jefe.nombre} y le causa {dano_recibido} de daño.")
-        
-        for secuaz in enemigos[1:]:
-            if random.random() < 0.1:  # 10% de probabilidad de que el secuaz ataque
-                dano = random.randint(10, 20)  # Ataque del secuaz
-                dano_recibido = jugador.recibir_ataque(dano)
-                print(f"El {secuaz.nombre} ataca al jugador y le causa {dano_recibido} de daño.")
-
-        # Revisar si algún enemigo ha muerto
-        enemigos = [en for en in enemigos if en.vida_actual > 0]  # Eliminar enemigos muertos
-        if len(enemigos) == 1:  # Solo queda el jefe
-            print("¡Has vencido a todos los secuaces! Ahora el combate es con el jefe.")
-            # Proceder a la siguiente fase del combate
-            break
-
-        # Si el jugador pierde toda su vida
-        if jugador.vida_actual <= 0:
-            print("El jugador ha sido derrotado. Fin del juego.")
-            break
-
-        pygame.display.update()  # Actualizar pantalla
-        pygame.time.delay(1000)  # Esperar un segundo antes de la siguiente iteración
-        
+   
 juego_principal()
