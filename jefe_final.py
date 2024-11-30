@@ -2,7 +2,7 @@ import pygame
 import random
 import math
 from gameover import game_over
-
+from bala import Bala
 screen_width = 1200
 screen_height = 700
 # Cargar imágenes del personaje para cada dirección y estado
@@ -38,7 +38,6 @@ rata = pygame.image.load("assets/enemigos/rata.png")
 rata_salto = pygame.image.load("assets/enemigos/rata_salto.png")
 rata = pygame.transform.scale(rata, (80, 40))
 rata_salto = pygame.transform.scale(rata_salto, (80, 40))
-
 
 
 # Escalar todas las imágenes a un tamaño adecuado (si es necesario)
@@ -95,7 +94,7 @@ def start_game():
     # Dimensiones de la pantalla
     
     screen = pygame.display.set_mode((screen_width, screen_height))
-    pygame.display.set_caption("Simulación de Combate con Agentes")
+    pygame.display.set_caption("Jefe Final")
 
     # FPS
     clock = pygame.time.Clock()
@@ -109,7 +108,7 @@ def start_game():
     direccion_actual = "frente"  # Dirección inicial
     estado_actual = "quieto"     # Estado inicial del jugador
     contador_animacion = 0       # Contador para alternar las imágenes
-    
+    bullet_player = []
 
     # Enemigos
     enemy_size = 30
@@ -169,6 +168,15 @@ def start_game():
     def draw_player():
         imagen_actual = imagenes[direccion_actual][estado_actual]
         screen.blit(imagen_actual, (player_pos[0], player_pos[1]))
+        
+    def draw_bullet_player():
+        pos_mouse = pygame.mouse.get_pos()
+        dx = pos_mouse[0] - player_pos.centerx
+        dy = pos_mouse[1] - player_pos.centery
+        angulo_bala = math.degrees(math.atan2(-dy, dx))
+        bala = Bala(player_pos.centerx, player_pos.centery, angulo_bala)
+        bullet_player.append(bala)
+        print(f"dx: {dx}, dy: {dy}, angulo: {angulo_bala}, mouse: {pos_mouse}")
 
     def game_over_verify():
         if player_health < 0:
@@ -205,9 +213,11 @@ def start_game():
                 screen.blit(imagen_rata, enemy["pos"]) 
                 #pygame.draw.rect(screen, RED, (enemy["pos"][0], enemy["pos"][1], enemy_size, enemy_size))
 
-
+        #dibujar las balas
+        
+        
         ancho_restriccion = screen_width  # La mitad del ancho de la ventana
-        alto_restriccion = 170  # Altura del área restringida
+        alto_restriccion = 150  # Altura del área restringida
         x_restriccion = (screen_width - ancho_restriccion) // 2  # Calcular la posición X para centrar
         y_restriccion = 0  # En la parte superior
 
@@ -260,6 +270,8 @@ def start_game():
             if player_pos.colliderect(pygame.Rect(bullet["x"], bullet["y"], 5, 5)):
                 player_health -= 1000
                 vertical_enemy.bullets.remove(bullet)
+        
+        
 
     # Función de simulación de agentes (mueve a los enemigos)
     # Función de simulación de agentes (mueve a los enemigos)
@@ -312,9 +324,9 @@ def start_game():
     def attack_enemy(enemy, dx, dy):
         global player_health
         # Simulamos disparar un proyectil
-        print(random.random())
+        #print(random.random())
         if random.random() < 0.1:  # Probabilidad de disparo
-            print("¡Disparo realizado hacia el jugador!")
+            #print("¡Disparo realizado hacia el jugador!")
             player_health -= 5  # El jugador recibe daño por disparo
             
             #verificar el game_over
@@ -333,7 +345,7 @@ def start_game():
     # Bucle principal del juego
     running = True
 
-    vertical_enemy = VerticalEnemy(50, 100, 3)
+    vertical_enemy = VerticalEnemy(1000, 100, 3)
 
     while running:
         clock.tick(60)  # Limitar el FPS
@@ -344,6 +356,11 @@ def start_game():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            # Detectar clic izquierdo
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                print('hola')
+                draw_bullet_player()
+        
         
         # Obtener teclas presionadas
         keys = pygame.key.get_pressed()
@@ -363,8 +380,14 @@ def start_game():
         # Dibujar el juego
         draw_game()
         
-        
-
+        for bullet in bullet_player[:]:
+            bullet.mover()
+            bullet.dibujar(screen)
+            print("dibujado")
+            if bullet.x < 0 or bullet.x > screen_width or bullet.y < 0 or bullet.y > screen_height:
+                bullet_player.remove(bullet)
+        # Actualizar la pantalla
+        pygame.display.update()
     pygame.quit()
 
 
@@ -372,26 +395,44 @@ def start_game():
 
 # Nuevo enemigo que se mueve de arriba a abajo y dispara
 class VerticalEnemy:
+    
+    
+    
+    
     def __init__(self, x, y, speed):
         self.x = x
         self.y = y
         self.speed = speed
         self.direction = 1  # 1 para abajo, -1 para arriba
         self.last_shot_time = 0
-        self.width = 40
-        self.height = 60
-        self.image = pygame.image.load("assets/enemigos/rata_salto.png")
-        self.image = pygame.transform.scale(self.image, (self.width, self.height))
+        self.width = 128
+        self.height = 128
+        self.health = 500
+        self.health_max = 500
+        
         self.bullets = []
+        self.images = [
+            pygame.transform.scale(pygame.image.load("assets/enemigos/jefe_final/jefe_1.png"), (self.width, self.height)),
+            pygame.transform.scale(pygame.image.load("assets/enemigos/jefe_final/jefe_2.png"), (self.width, self.height)),
+            pygame.transform.scale(pygame.image.load("assets/enemigos/jefe_final/jefe_3.png"), (self.width, self.height)),
+            pygame.transform.scale(pygame.image.load("assets/enemigos/jefe_final/jefe_4.png"), (self.width, self.height)),
+            pygame.transform.scale(pygame.image.load("assets/enemigos/jefe_final/jefe_5.png"), (self.width, self.height)),
+            pygame.transform.scale(pygame.image.load("assets/enemigos/jefe_final/jefe_6.png"), (self.width, self.height)),
+            pygame.transform.scale(pygame.image.load("assets/enemigos/jefe_final/jefe_7.png"), (self.width, self.height)),
+        ]
+        self.animation_index = 0
+        self.animation_direction = 1  # 1 para avanzar, -1 para retroceder
+        self.animation_timer = pygame.time.get_ticks()
 
     def move(self):
         self.y += self.speed * self.direction
         if self.y <= 0 or self.y + self.height >= screen_height:
             self.direction *= -1
+        
 
     def shoot(self, player_pos):
         current_time = pygame.time.get_ticks()
-        if current_time - self.last_shot_time > 5000:  # Cada 5 segundos
+        if current_time - self.last_shot_time > 1500:  # Cada N segundos
             self.last_shot_time = current_time
             # Calcular la dirección hacia el jugador
             dx = player_pos[0] - self.x
@@ -411,8 +452,20 @@ class VerticalEnemy:
             if bullet["x"] < 0 or bullet["x"] > screen_width or bullet["y"] < 0 or bullet["y"] > screen_height:
                 self.bullets.remove(bullet)
 
+    def update_animation(self):
+        current_time = pygame.time.get_ticks()
+        if current_time - self.animation_timer > 100:  # Cambia de frame cada 100ms
+            self.animation_timer = current_time
+            self.animation_index += self.animation_direction
+
+            # Cambiar de dirección al llegar al final o inicio de la animación
+            if self.animation_index == len(self.images) - 1 or self.animation_index == 0:
+                self.animation_direction *= -1
+    
     def draw(self, screen):
-        screen.blit(self.image, (self.x, self.y))
+        self.update_animation()  # Actualizar la animación
+        dibujar_barra_vida(screen, 700, 20, self.health, self.health_max, 500, 20)
+        screen.blit(self.images[self.animation_index], (self.x, self.y))
         for bullet in self.bullets:
-            pygame.draw.circle(screen, (255, 0, 0), (int(bullet["x"]), int(bullet["y"])), 5)
+            pygame.draw.circle(screen, (255, 140, 0), (int(bullet["x"]), int(bullet["y"])), 10)
 
