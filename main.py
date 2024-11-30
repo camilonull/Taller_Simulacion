@@ -9,7 +9,7 @@ from bala import Bala
 from enemigo import Enemigo
 from generar_tiempos import generar_tiempos_entre_llegadas
 from jefe_final import start_game
-
+from mensaje import mostrar_mensaje_jefe
 # Inicializar Pygame
 pygame.init()
 
@@ -230,16 +230,15 @@ def juego_principal():
 
     personaje = pygame.Rect(ANCHO // 2, ALTO // 2, 50, 50)
     velocidad = 5
-    
+  
     estado_actual = "quieto"
-   
+    
     
     tiempo_ultima_interaccion = 0  # Tiempo de la última interacción
     contador_activo = True  # Estado del contador
     tiempo_restante = 15  # Contador inicial en segundos
 
     contador_pasos = 0
-    tiempo_actual = pygame.time.get_ticks() 
     # Lista para almacenar las balas disparadas
     balas = []
 
@@ -287,7 +286,8 @@ def juego_principal():
     while ejecutando:
         # Establecer la cantidad de FPS
         reloj.tick(60)
-        
+        current_time = pygame.time.get_ticks()
+            
         centro_personaje_x = personaje.x + personaje.width // 2
         centro_personaje_y = personaje.y + personaje.height // 2
 
@@ -296,7 +296,7 @@ def juego_principal():
         
         if contador_activo:
             # Calcular el tiempo restante
-            tiempo_restante = 10 - (tiempo_actual - tiempo_ultima_interaccion) // 1000  # Convertir a segundos
+            tiempo_restante = 10 - (current_time - tiempo_ultima_interaccion) // 1000  # Convertir a segundos
 
             if tiempo_restante <= 0:
                 contador_activo = False  # Desactivar el contador si ha llegado a 0
@@ -552,15 +552,16 @@ def juego_principal():
                     balas.remove(bala)  # Elimina la bala
                     enemigos_aves.remove(enemigo)  # Elimina el enemigo
                     break  # Sale del bucle interno para evitar errores de modificación de lista
-            # Opcional: eliminar balas fuera de la pantalsla
+            # Opcional: eliminar balas fuera dew la pantalsla
             if bala.x < 0 or bala.x > ANCHO or bala.y < 0 or bala.y > ALTO:
                 balas.remove(bala)
 
         ventana.blit(imagen_cursor, (pos_mouse[0] - imagen_cursor.get_width() // 2, pos_mouse[1] - imagen_cursor.get_height() // 2))
         
-        if not enemigos and not enemigos_aves:
-            print("jefe final iniciar")
+        if not enemigos and not enemigos_aves:      
+            mostrar_mensaje_jefe(ventana, "!! Yendo al jefe final !!", ANCHO, ALTO)
             start_game()
+            
             break  # Sal del bucle principal tras el combate
         # Actualizar la pantalla
         pygame.display.update()

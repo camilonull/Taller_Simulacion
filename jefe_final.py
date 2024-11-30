@@ -3,6 +3,10 @@ import random
 import math
 from gameover import game_over
 from bala import Bala
+from win_screen import win
+
+
+
 screen_width = 1200
 screen_height = 700
 # Cargar imágenes del personaje para cada dirección y estado
@@ -28,6 +32,7 @@ imagenes = {
         "paso2": pygame.image.load("assets/player/derecha/derecha_paso2.png")
     }
 }
+
 # Cargar la imagen de fondo
 fondo = pygame.image.load("assets/fondos/fondo_juego_jefe.png")
 #Escalar fondo a la pantalla
@@ -46,17 +51,16 @@ for direccion in imagenes:
         imagenes[direccion][estado] = pygame.transform.scale(imagenes[direccion][estado], (50, 70))  # Ajustar el tamaño
 
 def dibujar_barra_vida(ventana, x, y, vida_actual, vida_maxima, ancho_maximo,alto):
-    # Inicializar la fuente
-    fuente = pygame.font.Font(None, 36)
-     # Dibujar el texto "Casa" sobre la barra de vida
-    texto = fuente.render("Cloud", True, (255, 255, 255))  # El color del texto es blanco
-    ventana.blit(texto, (40, 10)) 
   
     color_barra = (255, 165, 0)# Verde para la vida regular
 
+     # Asegurarse de que vida_maxima no sea 0 para evitar la división por cero
+    if vida_maxima == 0:
+        return
+
     # Calcular el porcentaje de vida actual y el ancho de la barra
     porcentaje_vida = vida_actual / vida_maxima
-    ancho_actual = int(ancho_maximo * porcentaje_vida)
+    ancho_actual = max(1, int(ancho_maximo * porcentaje_vida))  # Evitar que el ancho sea 0
 
     # Dibujar la barra de fondo (gris)
     pygame.draw.rect(ventana, (128, 128, 128), (x, y, ancho_maximo, alto))
@@ -76,7 +80,7 @@ def dibujar_barra_vida(ventana, x, y, vida_actual, vida_maxima, ancho_maximo,alt
 
     # Mostrar el valor numérico de la vida
     font = pygame.font.Font(None, 24)
-    texto_vida = font.render(str(vida_actual), True, (255, 255, 255))
+    texto_vida = font.render(str(vida_actual), True, (255, 140, 0))
     ventana.blit(texto_vida, (x + ancho_maximo // 2 - texto_vida.get_width() // 2, y - 20))
 
     # Indicador de peligro (parpadeo cuando la vida es baja)
@@ -86,9 +90,13 @@ def dibujar_barra_vida(ventana, x, y, vida_actual, vida_maxima, ancho_maximo,alt
 
 
 def start_game():
-    global player_health, player_health_max
+    global player_health, player_health_max, running
     # Inicialización de Pygame
     pygame.init()
+    
+    sonido_click = pygame.mixer.Sound("assets/sonidos/pistol-shot.wav")
+    sonido_attack = pygame.mixer.Sound("assets/sonidos/ataque_rata.mp3")
+    
     # Ocultar el cursor predeterminado
     #pygame.mouse.set_visible(False)
     # Dimensiones de la pantalla
@@ -101,19 +109,22 @@ def start_game():
 
     # Personaje del jugador
     player_size = 50
-    player_pos = pygame.Rect(screen_width // 2, screen_height // 2, player_size, player_size)
+    player_pos = pygame.Rect(screen_width // 2, screen_height // 2, 50, 70)
     player_speed = 5
-    player_health = 100000
-    player_health_max = 100000
+    player_health = 250
+    player_health_max = 250
     direccion_actual = "frente"  # Dirección inicial
     estado_actual = "quieto"     # Estado inicial del jugador
     contador_animacion = 0       # Contador para alternar las imágenes
     bullet_player = []
 
+    # Tiempo inicial
+    last_time = pygame.time.get_ticks()
+
     # Enemigos
     enemy_size = 30
     enemy_speed = 3
-    enemy_health = 50
+    enemy_health = 20
     enemies = []
 
     # Función para crear enemigos
@@ -121,10 +132,7 @@ def start_game():
         x = random.randint(0, screen_width - enemy_size)
         y = random.randint(0, screen_height - enemy_size)
         return {"pos": [x, y], "alive": True, "health": enemy_health, "gun_range": 150}
-
-    # Crear algunos enemigos
-    for _ in range(5):
-        enemies.append(create_enemy())
+  
      # Función para animar al personaje
      
      # Función para calcular la dirección en base al mouse
@@ -176,8 +184,7 @@ def start_game():
         angulo_bala = math.degrees(math.atan2(-dy, dx))
         bala = Bala(player_pos.centerx, player_pos.centery, angulo_bala)
         bullet_player.append(bala)
-        print(f"dx: {dx}, dy: {dy}, angulo: {angulo_bala}, mouse: {pos_mouse}")
-
+    
     def game_over_verify():
         if player_health < 0:
             game_over(screen, screen_width, screen_height)
@@ -187,6 +194,9 @@ def start_game():
         
         # Dibujar el fondo primero
         screen.blit(fondo, (0, 0))
+        fuente = pygame.font.Font(None, 36)
+        texto = fuente.render("Cloud", True, (255, 255, 255))  # El color del texto es blanco
+        screen.blit(texto, (40, 10))
         #dibujar vida del personaje
         dibujar_barra_vida(screen,10,40,player_health,player_health_max,500,20)
         mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -264,14 +274,44 @@ def start_game():
                     player_pos[1] < ey + enemy_size and player_pos[1] + player_size > ey):
                     enemy["alive"] = False
                     player_health -= 10  # El jugador recibe daño cuando colisiona
-
+                    game_over_verify()
             # Comprobar colisiones con las balas del enemigo vertical
         for bullet in vertical_enemy.bullets:
             if player_pos.colliderect(pygame.Rect(bullet["x"], bullet["y"], 5, 5)):
-                player_health -= 1000
+                player_health -= 40
                 vertical_enemy.bullets.remove(bullet)
-        
-        
+                game_over_verify()
+
+            
+        for bullet in bullet_player[:]:
+            bullet.mover()
+            bullet.dibujar(screen)
+            
+            if bullet.rect.colliderect(vertical_enemy.rect):
+                bullet_player.remove(bullet)  # Elimina la bala que colisiona
+                vertical_enemy.less_health()
+                if vertical_enemy.health <= 0:
+                    win(screen, screen_width, screen_height)
+                    running = False
+            
+                    # Comprobar si la bala colisiona con alguno de los enemigos
+            for enemy in enemies:
+                if enemy["alive"]:
+                    # Crear un rect para el enemigo basado en su posición y tamaño
+                    enemy_rect = pygame.Rect(enemy["pos"][0], enemy["pos"][1], enemy_size, enemy_size)
+
+                    if bullet.rect.colliderect(enemy_rect):  # Verificar colisión
+                        bullet_player.remove(bullet)  # Eliminar la bala
+                        enemy["health"] -= 10  # Reducir salud del enemigo (ajusta el valor según sea necesario)
+
+                        if enemy["health"] <= 0:  # Si la salud llega a 0
+                            enemy["alive"] = False  # El enemigo está muerto
+                            # Aquí puedes añadir efectos visuales o recompensas al jugador
+                        break  # Salir del bucle de enemigos para evitar eliminar la misma bala varias veces
+                    
+                  
+            if bullet.x < 0 or bullet.x > screen_width or bullet.y < 0 or bullet.y > screen_height:
+                bullet_player.remove(bullet)
 
     # Función de simulación de agentes (mueve a los enemigos)
     # Función de simulación de agentes (mueve a los enemigos)
@@ -324,9 +364,9 @@ def start_game():
     def attack_enemy(enemy, dx, dy):
         global player_health
         # Simulamos disparar un proyectil
-        #print(random.random())
+        
         if random.random() < 0.1:  # Probabilidad de disparo
-            #print("¡Disparo realizado hacia el jugador!")
+            sonido_attack.play()
             player_health -= 5  # El jugador recibe daño por disparo
             
             #verificar el game_over
@@ -349,18 +389,17 @@ def start_game():
 
     while running:
         clock.tick(60)  # Limitar el FPS
-
-        
-
+        current_time = pygame.time.get_ticks()
         # Manejo de eventos
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             # Detectar clic izquierdo
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                print('hola')
-                draw_bullet_player()
-        
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    draw_bullet_player()
+                    sonido_click.play()
+                                           
         
         # Obtener teclas presionadas
         keys = pygame.key.get_pressed()
@@ -370,34 +409,25 @@ def start_game():
         # Actualizar la dirección según el mouse
         actualizar_direccion()
 
-        
-        # Verificar colisiones
-        check_collisions()
-
         # Realizar simulación de agentes si hay enemigos vivos
         agent_simulation()
 
         # Dibujar el juego
         draw_game()
         
-        for bullet in bullet_player[:]:
-            bullet.mover()
-            bullet.dibujar(screen)
-            print("dibujado")
-            if bullet.x < 0 or bullet.x > screen_width or bullet.y < 0 or bullet.y > screen_height:
-                bullet_player.remove(bullet)
+        # Verificar colisiones
+        check_collisions()
+        
+        if current_time - last_time >= 2000:  # 1000 ms = 1 segundo
+            enemies.append(create_enemy())
+            last_time = current_time  # Reiniciar el tiempo
+        
         # Actualizar la pantalla
         pygame.display.update()
     pygame.quit()
 
-
-
-
 # Nuevo enemigo que se mueve de arriba a abajo y dispara
 class VerticalEnemy:
-    
-    
-    
     
     def __init__(self, x, y, speed):
         self.x = x
@@ -407,8 +437,8 @@ class VerticalEnemy:
         self.last_shot_time = 0
         self.width = 128
         self.height = 128
-        self.health = 500
-        self.health_max = 500
+        self.health = 300
+        self.health_max = 300
         
         self.bullets = []
         self.images = [
@@ -423,12 +453,15 @@ class VerticalEnemy:
         self.animation_index = 0
         self.animation_direction = 1  # 1 para avanzar, -1 para retroceder
         self.animation_timer = pygame.time.get_ticks()
-
+        # Definir el rectángulo inicial
+        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
     def move(self):
         self.y += self.speed * self.direction
+        self.rect.topleft = (self.x, self.y)  # Actualiza la posición del rectángulo
         if self.y <= 0 or self.y + self.height >= screen_height:
             self.direction *= -1
-        
+    def less_health(self):
+        self.health = self.health - 10    
 
     def shoot(self, player_pos):
         current_time = pygame.time.get_ticks()
@@ -464,7 +497,11 @@ class VerticalEnemy:
     
     def draw(self, screen):
         self.update_animation()  # Actualizar la animación
-        dibujar_barra_vida(screen, 700, 20, self.health, self.health_max, 500, 20)
+        
+        fuente = pygame.font.Font(None, 36)
+        texto = fuente.render("FINAL BOSS", True, (255, 140, 0))  # El color del texto es blanco
+        screen.blit(texto, (600, 10))
+        dibujar_barra_vida(screen, 600, 40, self.health, self.health_max, 500, 20)
         screen.blit(self.images[self.animation_index], (self.x, self.y))
         for bullet in self.bullets:
             pygame.draw.circle(screen, (255, 140, 0), (int(bullet["x"]), int(bullet["y"])), 10)
