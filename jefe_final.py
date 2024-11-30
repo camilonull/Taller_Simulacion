@@ -87,6 +87,7 @@ def dibujar_barra_vida(ventana, x, y, vida_actual, vida_maxima, ancho_maximo,alt
 
 
 def start_game():
+    global player_health, player_health_max
     # Inicialización de Pygame
     pygame.init()
     # Ocultar el cursor predeterminado
@@ -103,12 +104,12 @@ def start_game():
     player_size = 50
     player_pos = pygame.Rect(screen_width // 2, screen_height // 2, player_size, player_size)
     player_speed = 5
-    player_health = 100
-    player_health_max = 100
+    player_health = 100000
+    player_health_max = 100000
     direccion_actual = "frente"  # Dirección inicial
     estado_actual = "quieto"     # Estado inicial del jugador
     contador_animacion = 0       # Contador para alternar las imágenes
-
+    
 
     # Enemigos
     enemy_size = 30
@@ -184,6 +185,11 @@ def start_game():
         screen.blit(imagen_cursor, (mouse_x - imagen_cursor.get_width() // 2, mouse_y - imagen_cursor.get_height() // 2))
        # Dibujar jugador
         draw_player()
+        # Dibujar el enemigo vertical
+        vertical_enemy.move()
+        vertical_enemy.shoot(player_pos)
+        vertical_enemy.update_bullets()
+        vertical_enemy.draw(screen)
         
         # Dibujar enemigos
         for enemy in enemies:
@@ -239,7 +245,8 @@ def start_game():
 
     # Función para detectar colisiones entre el jugador y los enemigos
     def check_collisions():
-        nonlocal player_health
+        
+        global player_health
         for enemy in enemies:
             if enemy["alive"]:
                 ex, ey = enemy["pos"]
@@ -248,8 +255,16 @@ def start_game():
                     enemy["alive"] = False
                     player_health -= 10  # El jugador recibe daño cuando colisiona
 
+            # Comprobar colisiones con las balas del enemigo vertical
+        for bullet in vertical_enemy.bullets:
+            if player_pos.colliderect(pygame.Rect(bullet["x"], bullet["y"], 5, 5)):
+                player_health -= 1000
+                vertical_enemy.bullets.remove(bullet)
+
+    # Función de simulación de agentes (mueve a los enemigos)
     # Función de simulación de agentes (mueve a los enemigos)
     def agent_simulation():
+        global player_health  # Accedemos a la salud del jugador
         for enemy in enemies:
             if enemy["alive"]:
                 ex, ey = enemy["pos"]
@@ -257,14 +272,33 @@ def start_game():
                 dy = player_pos[1] - ey
                 distance = math.sqrt(dx**2 + dy**2)
                 
-                # Decisiones basadas en la distancia al jugador
-                if distance < 50:  # Muy cerca, el enemigo intenta atacar
+                # Comportamiento basado en la distancia
+                if distance < 80:  # Muy cerca, el enemigo huye
+                    move_x = -dx / distance * enemy_speed
+                    move_y = -dy / distance * enemy_speed
+                    enemy["pos"][0] += move_x
+                    enemy["pos"][1] += move_y
+                elif distance < enemy["gun_range"]:  # En rango de ataque
+                    # Ataque: el enemigo reduce la salud del jugador
                     attack_enemy(enemy, dx, dy)
-                elif distance < enemy["gun_range"]:  # Dentro del rango de disparo
-                    shoot_enemy(enemy, dx, dy)
-                else:  # Si está lejos, se mueve hacia el jugador
-                    move_towards_player(enemy, dx, dy)
-                
+                    # Cambiar imagen a una rata atacando
+                    enemy["frame"] = rata_salto
+                else:  # Fuera de rango, el enemigo se acerca
+                    move_x = dx / distance * enemy_speed
+                    move_y = dy / distance * enemy_speed
+                    enemy["pos"][0] += move_x
+                    enemy["pos"][1] += move_y
+
+                # Evitar que el enemigo se salga de la pantalla
+                if enemy["pos"][0] < 0:
+                    enemy["pos"][0] = 0
+                elif enemy["pos"][0] > screen_width - enemy_size:
+                    enemy["pos"][0] = screen_width - enemy_size
+                if enemy["pos"][1] < 0:
+                    enemy["pos"][1] = 0
+                elif enemy["pos"][1] > screen_height - enemy_size:
+                    enemy["pos"][1] = screen_height - enemy_size
+
                 # Alternar entre imágenes de rata (con contador)
                 enemy["frame_count"] = enemy.get("frame_count", 0) + 1  # Incrementar el contador
                 if enemy["frame_count"] >= 30:  # Cambiar cada 30 frames (ajusta este valor)
@@ -276,13 +310,7 @@ def start_game():
 
     # Función para atacar al jugador cuerpo a cuerpo
     def attack_enemy(enemy, dx, dy):
-        angle = math.atan2(dy, dx)
-        enemy["pos"][0] += enemy_speed * math.cos(angle)
-        enemy["pos"][1] += enemy_speed * math.sin(angle)
-
-    # Función para disparar al jugador
-    def shoot_enemy(enemy, dx, dy):
-        nonlocal player_health
+        global player_health
         # Simulamos disparar un proyectil
         print(random.random())
         if random.random() < 0.1:  # Probabilidad de disparo
@@ -304,8 +332,13 @@ def start_game():
 
     # Bucle principal del juego
     running = True
+
+    vertical_enemy = VerticalEnemy(50, 100, 3)
+
     while running:
         clock.tick(60)  # Limitar el FPS
+
+        
 
         # Manejo de eventos
         for event in pygame.event.get():
@@ -333,3 +366,53 @@ def start_game():
         
 
     pygame.quit()
+
+
+
+
+# Nuevo enemigo que se mueve de arriba a abajo y dispara
+class VerticalEnemy:
+    def __init__(self, x, y, speed):
+        self.x = x
+        self.y = y
+        self.speed = speed
+        self.direction = 1  # 1 para abajo, -1 para arriba
+        self.last_shot_time = 0
+        self.width = 40
+        self.height = 60
+        self.image = pygame.image.load("assets/enemigos/rata_salto.png")
+        self.image = pygame.transform.scale(self.image, (self.width, self.height))
+        self.bullets = []
+
+    def move(self):
+        self.y += self.speed * self.direction
+        if self.y <= 0 or self.y + self.height >= screen_height:
+            self.direction *= -1
+
+    def shoot(self, player_pos):
+        current_time = pygame.time.get_ticks()
+        if current_time - self.last_shot_time > 5000:  # Cada 5 segundos
+            self.last_shot_time = current_time
+            # Calcular la dirección hacia el jugador
+            dx = player_pos[0] - self.x
+            dy = player_pos[1] - self.y
+            distance = math.sqrt(dx**2 + dy**2)
+            if distance != 0:
+                dx /= distance
+                dy /= distance
+            # Agregar la bala
+            self.bullets.append({"x": self.x + self.width // 2, "y": self.y + self.height // 2, "dx": dx, "dy": dy})
+
+    def update_bullets(self):
+        for bullet in self.bullets[:]:
+            bullet["x"] += bullet["dx"] * 10
+            bullet["y"] += bullet["dy"] * 10
+            # Eliminar balas que salen de la pantalla
+            if bullet["x"] < 0 or bullet["x"] > screen_width or bullet["y"] < 0 or bullet["y"] > screen_height:
+                self.bullets.remove(bullet)
+
+    def draw(self, screen):
+        screen.blit(self.image, (self.x, self.y))
+        for bullet in self.bullets:
+            pygame.draw.circle(screen, (255, 0, 0), (int(bullet["x"]), int(bullet["y"])), 5)
+
