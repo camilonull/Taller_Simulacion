@@ -45,8 +45,8 @@ tiempo_aparicion_2 = [sum(AIT_ms_sapos[:i + 1]) for i in range(len(AIT_ms_sapos)
 # Cargar imagenes enemigos 
 sapo_normal = "assets\\enemigos\\sapo.png"
 sapo_salto = "assets\\enemigos\\sapo_salto.png"
-ave_normal = "assets\\enemigos\\sapo.png"
-ave_vuelo = "assets\\enemigos\\sapo_salto.png"
+ave_normal = "assets\\enemigos\\ave.png"
+ave_vuelo = "assets\\enemigos\\ave_vuelo.png"
 
 # Cargar la imagen de fondo
 fondo = pygame.image.load("assets/fondos/fondo_juego_1.png")
@@ -109,6 +109,8 @@ imagenes_mata = [
     pygame.image.load("assets/fondos/mata_mari2.png"),
     pygame.image.load("assets/fondos/mata_mari3.png")
 ]
+
+
 
 # Escalar las imágenes si es necesario
 for i in range(len(imagenes_mata)):
@@ -194,7 +196,7 @@ def dibujar_barra_vida(ventana, x, y, vida_actual, vida_maxima, ancho_maximo,alt
     texto_vida = font.render(str(vida_actual), True, (255, 255, 255))
     ventana.blit(texto_vida, (x + ancho_maximo // 2 - texto_vida.get_width() // 2, y - 20))
 
-    # Dibujar imagen de escudo si está activo
+    # Dibujar imagen de escudo si está activos
     if con_escudo:
         imagen_escudo = pygame.image.load("assets\powerups\escudo.png")  # Carga tu imagen de escudo
         imagen_escudo = pygame.transform.scale(imagen_escudo, (60, 60))  # Ajusta el tamaño del escudo
@@ -207,6 +209,12 @@ def dibujar_barra_vida(ventana, x, y, vida_actual, vida_maxima, ancho_maximo,alt
 
 
 def juego_principal():
+
+    # Variables adicionales
+    mostrar_mensaje = False
+    tiempo_mensaje = 0
+    duracion_mensaje = 2000  # Duración del mensaje en milisegundos (2 segundos)
+
 
     # Definir el número inicial de balas
     balas_restantes = 40
@@ -433,7 +441,23 @@ def juego_principal():
                 elif powerup_obtenido == "escudo":
                     vida_escudo = vida_maxima_escudo
                     con_escudo = True
- 
+                 # Preparar para mostrar el mensaje
+                mostrar_mensaje = True
+                tiempo_mensaje = pygame.time.get_ticks()
+                mensaje_texto = f"Power-up ganado: {powerup_obtenido}"
+        
+        # Comprobar si debe mostrarse el mensaje
+        if mostrar_mensaje:
+            tiempo_actual = pygame.time.get_ticks()
+            if tiempo_actual - tiempo_mensaje <= duracion_mensaje:
+                fuente = pygame.font.Font(None, 50)
+                texto = fuente.render(mensaje_texto, True, (255, 255, 255))
+                texto_rect = texto.get_rect(center=(ventana.get_width() // 2, ventana.get_height() - 50))
+                ventana.blit(texto, texto_rect)
+            else:
+                # Ocultar el mensaje después de 2 segundos
+                mostrar_mensaje = False
+              
         # Dibuja el contador en pantalla
         if contador_activo:
             fuente = pygame.font.SysFont(None, 48)  # Crea una fuente
@@ -533,8 +557,7 @@ def juego_principal():
                 balas.remove(bala)
 
         ventana.blit(imagen_cursor, (pos_mouse[0] - imagen_cursor.get_width() // 2, pos_mouse[1] - imagen_cursor.get_height() // 2))
-        # Comprueba si las listas de enemigos están vacías
-        print(enemigos, enemigos_aves)
+        
         if not enemigos and not enemigos_aves:
             print("jefe final iniciar")
             start_game()

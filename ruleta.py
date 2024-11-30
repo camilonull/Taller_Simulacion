@@ -24,7 +24,7 @@ _powerup_seleccionado = None
 _tiempo_inicio_ruleta = 0
 _tiempo_mostrar_powerup = 0  # Nuevo tiempo para mostrar el power-up seleccionado
 duracion_ruleta = 3000  # Duración de la ruleta en milisegundos (3 segundos)
-duracion_powerup_ganador = 1000  # Duración del power-up ganador en ms (1 segundo)
+duracion_powerup_ganador = 2000  # Duración del power-up ganador en ms (1 segundo)
 escudo_activo = False
 
 # Mostrar la ruleta
@@ -49,7 +49,7 @@ indice_Ri = 0
 
 # Nueva función de dibujar_ruleta actualizada
 def dibujar_ruleta(ventana, vida_actual_casa, vida_maxima_casa, municion_actual):
-    global _ruleta_mostrando, _powerup_seleccionado, indice_Ri
+    global _ruleta_mostrando, _powerup_seleccionado, indice_Ri, _tiempo_mostrar_powerup
     # Generar un arreglo de números pseudoaleatorios con congruencial lineal
     numerosProbados = False
     while(numerosProbados == False):
@@ -69,10 +69,7 @@ def dibujar_ruleta(ventana, vida_actual_casa, vida_maxima_casa, municion_actual)
 
         # Aplicar el power-up seleccionado
         vida_actual_casa, municion_actual = aplicar_powerup(_powerup_seleccionado, vida_actual_casa, vida_maxima_casa, municion_actual)
-        
-        # Mostrar la imagen del power-up en pantalla
-        powerup_imagen = powerups[_powerup_seleccionado]
-        ventana.blit(powerup_imagen, (150, 150))
+
         
         # Detener la ruleta después de mostrar el power-up
         _ruleta_mostrando = False
@@ -81,7 +78,7 @@ def dibujar_ruleta(ventana, vida_actual_casa, vida_maxima_casa, municion_actual)
         indice_Ri += 1
         if indice_Ri >= len(num_aleatorio_arr):  # Si llegamos al final de la secuencia, reiniciamos el índice
             indice_Ri = 0
-        
+      
     return vida_actual_casa, _powerup_seleccionado, municion_actual
 
 
