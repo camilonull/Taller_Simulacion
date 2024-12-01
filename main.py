@@ -61,8 +61,8 @@ fondo_juego_2 = pygame.transform.scale(fondo_juego_2, (ANCHO, ALTO))
 fondo_juego_3 = pygame.image.load("assets/fondos/fondo_juego_4.png")
 fondo_juego_3 = pygame.transform.scale(fondo_juego_3, (ANCHO, ALTO))
 
-escudo = pygame.image.load("assets/fondos/escudo.png")
-escudo = pygame.transform.scale(escudo, (330, 250))
+#escudo = pygame.image.load("assets/fondos/escudo.png")
+#escudo = pygame.transform.scale(escudo, (330, 250))
 
 #Escalar fondo a la pantalla
 fondo = pygame.transform.scale(fondo, (ANCHO, ALTO)) 
