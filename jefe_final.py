@@ -131,7 +131,7 @@ def start_game():
     def create_enemy():
         x = random.randint(0, screen_width - enemy_size)
         y = random.randint(0, screen_height - enemy_size)
-        return {"pos": [x, y], "alive": True, "health": enemy_health, "gun_range": 150}
+        return {"pos": [x, y], "alive": True, "health": enemy_health, "gun_range": 80}
   
      # Función para animar al personaje
      
@@ -273,7 +273,7 @@ def start_game():
                 if (player_pos[0] < ex + enemy_size and player_pos[0] + player_size > ex and
                     player_pos[1] < ey + enemy_size and player_pos[1] + player_size > ey):
                     enemy["alive"] = False
-                    player_health -= 10  # El jugador recibe daño cuando colisiona
+                    player_health -= 5  # El jugador recibe daño cuando colisiona
                     game_over_verify()
             # Comprobar colisiones con las balas del enemigo vertical
         for bullet in vertical_enemy.bullets:
@@ -318,7 +318,6 @@ def start_game():
                     bullet_player.remove(bullet)
 
     # Función de simulación de agentes (mueve a los enemigos)
-    # Función de simulación de agentes (mueve a los enemigos)
     def agent_simulation():
         global player_health  # Accedemos a la salud del jugador
         for enemy in enemies:
@@ -329,7 +328,7 @@ def start_game():
                 distance = math.sqrt(dx**2 + dy**2)
                 
                 # Comportamiento basado en la distancia
-                if distance < 80:  # Muy cerca, el enemigo huye
+                if distance < 60:  # Muy cerca, el enemigo huye
                     move_x = -dx / distance * enemy_speed
                     move_y = -dy / distance * enemy_speed
                     enemy["pos"][0] += move_x
