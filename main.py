@@ -25,8 +25,8 @@ VERDE = (11, 60, 10)
 font_balas = pygame.font.Font(None, 36) 
 
 #SIMULACION ENEMIGOS SAPOS
-lambd_sapos = 2  # Tasa de llegada (lambda)
-num_enemigos = 35  # Número de enemigos
+lambd_sapos = 1.5  # Tasa de llegada (lambda)
+num_enemigos = 140  # Número de enemigos
 AIT = generar_tiempos_entre_llegadas(num_enemigos, lambd_sapos)
 AIT_ms_sapos = [int(a * 1000) for a in AIT]  # Convertir a milisegundos
 print(AIT_ms_sapos)
@@ -35,8 +35,8 @@ print(AIT_ms_sapos)
 tiempo_aparicion = [sum(AIT_ms_sapos[:i+1]) for i in range(len(AIT_ms_sapos))]
 
 #SIMULACION ENEMIGOS AVES
-lambd_aves = 2  # Tasa de llegada (lambda) para los enemigos de la esquina superior derecha
-num_enemigos_2 = 35  # Número de enemigos para la segunda oleada
+lambd_aves = 1  # Tasa de llegada (lambda) para los enemigos de la esquina superior derecha
+num_enemigos_2 = 100  # Número de enemigos para la segunda oleada
 AIT_aves = generar_tiempos_entre_llegadas(num_enemigos_2, lambd_aves)
 AIT_ms = [int(a * 1000) for a in AIT_aves]  # Convertir a milisegundos
 
@@ -180,7 +180,7 @@ def juego_principal():
 
 
     # Definir el número inicial de balas
-    balas_restantes = 40
+    balas_restantes = 60
 
     # Parámetros de simulación
     
@@ -205,13 +205,13 @@ def juego_principal():
     # Lista para almacenar las balas disparadas
     balas = []
 
-    vida_maxima_casa = 400  # Vida total máxima de la Casa
-    vida_actual_casa = 400  # Vida inicial de la Casa
+    vida_maxima_casa = 300  # Vida total máxima de la Casa
+    vida_actual_casa = 300  # Vida inicial de la Casa
     ancho_barra_vida_casa = 500  # Ancho máximo de la barra de vida de la Casa
     
     con_escudo = False
-    vida_maxima_escudo = 200
-    vida_escudo = 200
+    vida_maxima_escudo = 70
+    vida_escudo = 70
     # Inicializar la fuente
     fuente = pygame.font.Font(None, 36)
     
@@ -247,6 +247,8 @@ def juego_principal():
     # Bucle principal del juego
     ejecutando = True
     while ejecutando:
+
+        
         # Establecer la cantidad de FPS
         reloj.tick(60)
         current_time = pygame.time.get_ticks()
@@ -264,8 +266,10 @@ def juego_principal():
             if tiempo_restante <= 0:
                 contador_activo = False  # Desactivar el contador si ha llegado a 0
                 tiempo_restante = 0  # Asegúrate de que no se muestre un valor negativo
+                
         distancia_mata = math.sqrt((centro_personaje_x - centro_mata_x) ** 2 + (centro_personaje_y - centro_mata_y) ** 2)
 
+        
         # Manejar eventos
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
@@ -386,6 +390,8 @@ def juego_principal():
         if distancia_mata < 100:  # Si la distancia es menor a 100 píxeles
            ventana.blit(imagen_e, (centro_mata_x - imagen_e.get_width() // 2, centro_mata_y - 100))  # Mostrar la imagen 'E' sobre la mata
 
+
+        
       
         # Manejar la entrada de la tecla 'E'
         if teclas[pygame.K_e] and distancia_mata < 100 and not ruleta_mostrando():
@@ -408,6 +414,8 @@ def juego_principal():
                 mostrar_mensaje = True
                 tiempo_mensaje = pygame.time.get_ticks()
                 mensaje_texto = f"Power-up ganado: {powerup_obtenido}"
+                x_mata = random.randint(5, 1000)
+                y_mata = random.randint(150, 370)
         
         # Comprobar si debe mostrarse el mensaje
         if mostrar_mensaje:
@@ -425,7 +433,7 @@ def juego_principal():
         if contador_activo:
             fuente = pygame.font.SysFont(None, 48)  # Crea una fuente
             texto_contador = fuente.render(f"{tiempo_restante}s", True, (255, 255, 255))  # Texto en blanco
-            ventana.blit(texto_contador, (90, y_mata + 180))  # Dibuja el contador en la esquina superior izquierda
+            ventana.blit(texto_contador, (x_mata + 90, y_mata + 180))  # Dibuja el contador en la esquina superior izquierda
         # Dibujar la barra de vida
         if con_escudo == False:
             dibujar_barra_vida(ventana, 40, 40, vida_actual_casa, vida_maxima_casa, ancho_barra_vida_casa, 20, con_escudo=False)
