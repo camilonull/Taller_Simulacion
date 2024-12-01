@@ -7,8 +7,10 @@ def win(ventana, ANCHO, ALTO):
 
     # Inicializar la fuente para el texto
     pygame.font.init()
-    fuente = pygame.font.Font(None, 36)  # Tamaño de fuente: 36
+    fuente = pygame.font.Font(None, 40)  # Tamaño de fuente: 36
+    fuente_win = pygame.font.Font(None, 65)  # Tamaño de fuente: 36
     texto = fuente.render("Presiona Enter para salir", True, (255, 255, 255))  # Texto en color blanco
+    texto_win = fuente_win.render("GANASTE !!!", True, (255, 255, 255))  # Texto en color blanco
 
     # Bucle principal de la pantalla de Game Over
     ejecutando = True
@@ -25,6 +27,8 @@ def win(ventana, ANCHO, ALTO):
 
         # Dibujar el texto en la parte inferior
         ventana.blit(texto, (ANCHO // 2 - texto.get_width() // 2, ALTO - 50))  # Centrar el texto horizontalmente
+
+        ventana.blit(texto_win, (ANCHO // 2 - texto.get_width() // 2, 50))  # Centrar el texto horizontalmente y colocarlo arriba
 
         # Actualizar la pantalla
         pygame.display.update()

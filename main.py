@@ -25,17 +25,18 @@ VERDE = (11, 60, 10)
 font_balas = pygame.font.Font(None, 36) 
 
 #SIMULACION ENEMIGOS SAPOS
-lambd_sapos = 500  # Tasa de llegada (lambda)
-num_enemigos = 1000  # Número de enemigos
+lambd_sapos = 2  # Tasa de llegada (lambda)
+num_enemigos = 35  # Número de enemigos
 AIT = generar_tiempos_entre_llegadas(num_enemigos, lambd_sapos)
 AIT_ms_sapos = [int(a * 1000) for a in AIT]  # Convertir a milisegundos
+print(AIT_ms_sapos)
 
 # Crear lista de tiempos acumulados de aparición
 tiempo_aparicion = [sum(AIT_ms_sapos[:i+1]) for i in range(len(AIT_ms_sapos))]
 
 #SIMULACION ENEMIGOS AVES
-lambd_aves = 500  # Tasa de llegada (lambda) para los enemigos de la esquina superior derecha
-num_enemigos_2 = 1000  # Número de enemigos para la segunda oleada
+lambd_aves = 2  # Tasa de llegada (lambda) para los enemigos de la esquina superior derecha
+num_enemigos_2 = 35  # Número de enemigos para la segunda oleada
 AIT_aves = generar_tiempos_entre_llegadas(num_enemigos_2, lambd_aves)
 AIT_ms = [int(a * 1000) for a in AIT_aves]  # Convertir a milisegundos
 
@@ -60,9 +61,6 @@ fondo_juego_2 = pygame.transform.scale(fondo_juego_2, (ANCHO, ALTO))
 
 fondo_juego_3 = pygame.image.load("assets/fondos/fondo_juego_4.png")
 fondo_juego_3 = pygame.transform.scale(fondo_juego_3, (ANCHO, ALTO))
-
-#escudo = pygame.image.load("assets/fondos/escudo.png")
-#escudo = pygame.transform.scale(escudo, (330, 250))
 
 #Escalar fondo a la pantalla
 fondo = pygame.transform.scale(fondo, (ANCHO, ALTO)) 
@@ -117,9 +115,6 @@ for i in range(len(imagenes_mata)):
     imagenes_mata[i] = pygame.transform.scale(imagenes_mata[i], (200, 200))  # Escalar al tamaño que necesites
 
 
-# Cargar las imágenes de la bala y escalar
-
-
 # Escalar todas las imágenes a un tamaño adecuado (si es necesario)
 for direccion in imagenes:
     for estado in imagenes[direccion]:
@@ -131,38 +126,6 @@ def mostrar_contador_balas(balas_restantes):
     texto_balas = font_balas.render(f"Balas: {balas_restantes}", True, VERDE)
     ventana.blit(texto_balas, (ventana.get_width() - 150, 20))  # Posición en la esquina superior derecha
 
-
-def dibujar_barra_vida(ventana, x, y, vida_actual, vida_maxima, ancho_maximo, alto):
-    # Calcular el porcentaje de vida actual
-    porcentaje_vida = vida_actual / vida_maxima
-    # Calcular el ancho actual de la barra basado en el porcentaje de vida
-    ancho_actual = int(ancho_maximo * porcentaje_vida)
-
-    # Dibujar la barra de fondo (gris)
-    pygame.draw.rect(ventana, (128, 128, 128), (x, y, ancho_maximo, alto))
-
-    # Crear una superficie para la barra de vida con un gradiente
-    superficie_barra = pygame.Surface((ancho_actual, alto))
-    for i in range(ancho_actual):
-        verde = int(255 * (1 - i / ancho_actual))
-        rojo = int(255 * (i / ancho_actual))
-        superficie_barra.fill((verde, rojo, 0), rect=pygame.Rect(i, 0, 1, alto))
-
-    # Dibujar la barra de vida con el gradiente
-    ventana.blit(superficie_barra, (x, y))
-
-    # Dibujar el contorno de la barra de vida (negro)
-    pygame.draw.rect(ventana, (0, 0, 0), (x, y, ancho_maximo, alto), 2)
-
-    # Mostrar el valor numérico de la vida
-    font = pygame.font.Font(None, 24)
-    texto_vida = font.render(str(vida_actual), True, (255, 255, 255))
-    ventana.blit(texto_vida, (x + ancho_maximo // 2 - texto_vida.get_width() // 2, y - 20))
-
-    # Indicador de peligro (parpadeo cuando la vida es baja)
-    if vida_actual < vida_maxima * 0.25:
-        if pygame.time.get_ticks() % 1000 < 500:
-            pygame.draw.rect(ventana, (255, 0, 0), (x, y, ancho_maximo, alto), 2)
 
 def dibujar_barra_vida(ventana, x, y, vida_actual, vida_maxima, ancho_maximo,alto,con_escudo=False):
     # Si el escudo está activo, cambia los parámetros de vida y color de barra
@@ -236,14 +199,14 @@ def juego_principal():
     
     tiempo_ultima_interaccion = 0  # Tiempo de la última interacción
     contador_activo = True  # Estado del contador
-    tiempo_restante = 15  # Contador inicial en segundos
+    tiempo_restante = 3  # Contador inicial en segundos
 
     contador_pasos = 0
     # Lista para almacenar las balas disparadas
     balas = []
 
-    vida_maxima_casa = 1000  # Vida total máxima de la Casa
-    vida_actual_casa = 1000  # Vida inicial de la Casa
+    vida_maxima_casa = 400  # Vida total máxima de la Casa
+    vida_actual_casa = 400  # Vida inicial de la Casa
     ancho_barra_vida_casa = 500  # Ancho máximo de la barra de vida de la Casa
     
     con_escudo = False
@@ -258,8 +221,8 @@ def juego_principal():
     # Reloj para controlar los FPS
     reloj = pygame.time.Clock()
     
-    ancho_casa = 270
-    alto_casa = 160
+    ancho_casa = 300
+    alto_casa = 180
     x_casa = 0  # Centramos la Casa horizontalmente
     y_casa = 80 
 
@@ -296,7 +259,7 @@ def juego_principal():
         
         if contador_activo:
             # Calcular el tiempo restante
-            tiempo_restante = 10 - (current_time - tiempo_ultima_interaccion) // 1000  # Convertir a segundos
+            tiempo_restante = 3 - (current_time - tiempo_ultima_interaccion) // 1000  # Convertir a segundos
 
             if tiempo_restante <= 0:
                 contador_activo = False  # Desactivar el contador si ha llegado a 0
@@ -427,7 +390,7 @@ def juego_principal():
         # Manejar la entrada de la tecla 'E'
         if teclas[pygame.K_e] and distancia_mata < 100 and not ruleta_mostrando():
             # Verificar si han pasado 10 segundos desde la última interacción
-            if tiempo_actual - tiempo_ultima_interaccion > 1000:  # 10000 ms = 10 segundos
+            if tiempo_actual - tiempo_ultima_interaccion > 3000:  # 10000 ms = 10 segundos
                 mostrar_ruleta()
                 tiempo_ultima_interaccion = tiempo_actual  # Actualiza la última interacción
                 contador_activo = True  # Activa el contador
@@ -479,7 +442,7 @@ def juego_principal():
         ventana.blit(imagenes[direccion_actual][estado_actual], personaje)
         
         #Dibujar collaider de la casa
-        #pygame.draw.rect(ventana, (255, 0, 0), casa) 
+        #pygame.draw.rect(ventana, (sa255, 0, 0), casa) 
         tiempo_actual = pygame.time.get_ticks()
 
         # Cambiar la imagen cada 1000 milisegundos (1 segundo)
@@ -543,24 +506,27 @@ def juego_principal():
             # Comprobar colisión con cada enemigo
             for enemigo in enemigos[:]:
                 if bala.rect.colliderect(enemigo.rect):  # Detecta colisión
-                    balas.remove(bala)  # Elimina la bala
+                    if bala in balas:
+                        balas.remove(bala)  # Elimina la bala
                     enemigos.remove(enemigo)  # Elimina el enemigo
                     break  # Sale del bucle interno para evitar errores de modificación de lista
             
             for enemigo in enemigos_aves[:]:
                 if bala.rect.colliderect(enemigo.rect):  # Detecta colisión
-                    balas.remove(bala)  # Elimina la bala
+                    if bala in balas:
+                        balas.remove(bala)  # Elimina la bala
                     enemigos_aves.remove(enemigo)  # Elimina el enemigo
                     break  # Sale del bucle interno para evitar errores de modificación de lista
             # Opcional: eliminar balas fuera dew la pantalsla
             if bala.x < 0 or bala.x > ANCHO or bala.y < 0 or bala.y > ALTO:
-                balas.remove(bala)
+                if bala in balas:
+                        balas.remove(bala)  # Elimina la bala
 
         ventana.blit(imagen_cursor, (pos_mouse[0] - imagen_cursor.get_width() // 2, pos_mouse[1] - imagen_cursor.get_height() // 2))
         
-        if not enemigos and not enemigos_aves:      
+        if not enemigos and not enemigos_aves and not tiempo_aparicion and not tiempo_aparicion_2:      
             mostrar_mensaje_jefe(ventana, "!! Yendo al jefe final !!", ANCHO, ALTO)
-            #start_game()
+            start_game()
             
             break  # Sal del bucle principal tras el combate
         # Actualizar la pantalla

@@ -227,7 +227,7 @@ def start_game():
         
         
         ancho_restriccion = screen_width  # La mitad del ancho de la ventana
-        alto_restriccion = 150  # Altura del área restringida
+        alto_restriccion = 60  # Altura del área restringida
         x_restriccion = (screen_width - ancho_restriccion) // 2  # Calcular la posición X para centrar
         y_restriccion = 0  # En la parte superior
 
@@ -279,7 +279,8 @@ def start_game():
         for bullet in vertical_enemy.bullets:
             if player_pos.colliderect(pygame.Rect(bullet["x"], bullet["y"], 5, 5)):
                 player_health -= 40
-                vertical_enemy.bullets.remove(bullet)
+                if bullet in vertical_enemy.bullets:
+                    vertical_enemy.bullets.remove(bullet)
                 game_over_verify()
 
             
@@ -288,8 +289,9 @@ def start_game():
             bullet.dibujar(screen)
             
             if bullet.rect.colliderect(vertical_enemy.rect):
-                bullet_player.remove(bullet)  # Elimina la bala que colisiona
-                vertical_enemy.less_health()
+                if bullet in bullet_player:
+                    bullet_player.remove(bullet)  # Elimina la bala que colisiona
+                    vertical_enemy.less_health()
                 if vertical_enemy.health <= 0:
                     win(screen, screen_width, screen_height)
                     running = False
@@ -301,8 +303,9 @@ def start_game():
                     enemy_rect = pygame.Rect(enemy["pos"][0], enemy["pos"][1], enemy_size, enemy_size)
 
                     if bullet.rect.colliderect(enemy_rect):  # Verificar colisión
-                        bullet_player.remove(bullet)  # Eliminar la bala
-                        enemy["health"] -= 10  # Reducir salud del enemigo (ajusta el valor según sea necesario)
+                        if bullet in bullet_player:
+                            bullet_player.remove(bullet)  # Eliminar la bala
+                            enemy["health"] -= 10  # Reducir salud del enemigo (ajusta el valor según sea necesario)
 
                         if enemy["health"] <= 0:  # Si la salud llega a 0
                             enemy["alive"] = False  # El enemigo está muerto
@@ -311,7 +314,8 @@ def start_game():
                     
                   
             if bullet.x < 0 or bullet.x > screen_width or bullet.y < 0 or bullet.y > screen_height:
-                bullet_player.remove(bullet)
+                if bullet in bullet_player:
+                    bullet_player.remove(bullet)
 
     # Función de simulación de agentes (mueve a los enemigos)
     # Función de simulación de agentes (mueve a los enemigos)
@@ -483,7 +487,8 @@ class VerticalEnemy:
             bullet["y"] += bullet["dy"] * 10
             # Eliminar balas que salen de la pantalla
             if bullet["x"] < 0 or bullet["x"] > screen_width or bullet["y"] < 0 or bullet["y"] > screen_height:
-                self.bullets.remove(bullet)
+                if bullet in self.bullets:
+                    self.bullets.remove(bullet)
 
     def update_animation(self):
         current_time = pygame.time.get_ticks()

@@ -8,8 +8,8 @@ class Enemigo:
         self.rect = pygame.Rect(x, y, 50, 50)  # Tamaño del enemigo
         self.imagen_normal = pygame.image.load(imagen_normal)  # Imagen estándar
         self.imagen_salto = pygame.image.load(imagen_salto)  # Imagen de salto
-        self.imagen_normal = pygame.transform.scale(self.imagen_normal, (50, 40))
-        self.imagen_salto = pygame.transform.scale(self.imagen_salto, (50, 50))
+        self.imagen_normal = pygame.transform.scale(self.imagen_normal, (60, 55))
+        self.imagen_salto = pygame.transform.scale(self.imagen_salto, (60, 55))
         self.imagen_actual = self.imagen_normal  # Empieza con la imagen normal
         self.cambio = 0  # Contador para cambiar entre las imágenes
         self.tipo_enemigo = tipo_enemigo
