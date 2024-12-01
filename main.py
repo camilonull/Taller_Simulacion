@@ -25,22 +25,22 @@ VERDE = (11, 60, 10)
 font_balas = pygame.font.Font(None, 36) 
 
 #SIMULACION ENEMIGOS SAPOS
-lambd_sapos = 100  # Tasa de llegada (lambda)
-num_enemigos = 10  # Número de enemigos
+lambd_sapos = 500  # Tasa de llegada (lambda)
+num_enemigos = 1000  # Número de enemigos
 AIT = generar_tiempos_entre_llegadas(num_enemigos, lambd_sapos)
-AIT_ms = [int(a * 1000) for a in AIT]  # Convertir a milisegundos
+AIT_ms_sapos = [int(a * 1000) for a in AIT]  # Convertir a milisegundos
 
 # Crear lista de tiempos acumulados de aparición
-tiempo_aparicion = [sum(AIT_ms[:i+1]) for i in range(len(AIT_ms))]
+tiempo_aparicion = [sum(AIT_ms_sapos[:i+1]) for i in range(len(AIT_ms_sapos))]
 
-#SIMULACION ENEMIGOS SAPOS
-lambd_aves = 100  # Tasa de llegada (lambda) para los enemigos de la esquina superior derecha
-num_enemigos_2 = 10  # Número de enemigos para la segunda oleada
+#SIMULACION ENEMIGOS AVES
+lambd_aves = 500  # Tasa de llegada (lambda) para los enemigos de la esquina superior derecha
+num_enemigos_2 = 1000  # Número de enemigos para la segunda oleada
 AIT_aves = generar_tiempos_entre_llegadas(num_enemigos_2, lambd_aves)
-AIT_ms_sapos = [int(a * 1000) for a in AIT_aves]  # Convertir a milisegundos
+AIT_ms = [int(a * 1000) for a in AIT_aves]  # Convertir a milisegundos
 
 # Crear lista de tiempos acumulados de aparición para la segunda oleada
-tiempo_aparicion_2 = [sum(AIT_ms_sapos[:i + 1]) for i in range(len(AIT_ms_sapos))]
+tiempo_aparicion_2 = [sum(AIT_ms[:i + 1]) for i in range(len(AIT_ms))]
 
 # Cargar imagenes enemigos 
 sapo_normal = "assets\\enemigos\\sapo.png"
@@ -334,7 +334,7 @@ def juego_principal():
             enemigos.append(enemigo)
             tiempo_aparicion.pop(0)
        
-        # Manejo de la segunda oleada de enemigos
+        # Manejo de la oleada de enemigos aves
         if tiempo_aparicion_2 and tiempo_actual >= tiempo_aparicion_2[0]:
             spawn = random.choice(spawnsEnemigos_aves)
             enemigo_ave = Enemigo(1150, 100, ave_normal, ave_vuelo, "ave")
@@ -427,7 +427,7 @@ def juego_principal():
         # Manejar la entrada de la tecla 'E'
         if teclas[pygame.K_e] and distancia_mata < 100 and not ruleta_mostrando():
             # Verificar si han pasado 10 segundos desde la última interacción
-            if tiempo_actual - tiempo_ultima_interaccion > 3000:  # 10000 ms = 10 segundos
+            if tiempo_actual - tiempo_ultima_interaccion > 1000:  # 10000 ms = 10 segundos
                 mostrar_ruleta()
                 tiempo_ultima_interaccion = tiempo_actual  # Actualiza la última interacción
                 contador_activo = True  # Activa el contador
@@ -560,7 +560,7 @@ def juego_principal():
         
         if not enemigos and not enemigos_aves:      
             mostrar_mensaje_jefe(ventana, "!! Yendo al jefe final !!", ANCHO, ALTO)
-            start_game()
+            #start_game()
             
             break  # Sal del bucle principal tras el combate
         # Actualizar la pantalla
